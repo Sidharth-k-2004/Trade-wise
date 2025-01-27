@@ -115,6 +115,7 @@ public class User {
                 ", email='" + email + '\'' +
                 ", availableFunds=" + availableFunds +
                 ", createdAt=" + createdAt +
+                ",password=" +password +
                 '}';
     }
 

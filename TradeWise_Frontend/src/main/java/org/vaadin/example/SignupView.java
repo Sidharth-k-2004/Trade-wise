@@ -1,5 +1,9 @@
 package org.vaadin.example;
 
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.web.client.RestTemplate;
+
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
@@ -94,15 +98,40 @@ public class SignupView extends VerticalLayout {
 
         Button signupButton = new Button("Signup");
         signupButton.addClassName("signup-button");
+        // signupButton.addClickListener(e -> {
+        //     if (isValidInput(emailField.getValue(), passwordField.getValue())) {
+        //         showNotification("Signup successful!", "success-notification");
+        //         // Navigate to dashboard after successful signup
+        //         signupButton.getUI().ifPresent(ui -> ui.navigate("dashboard"));
+        //     } else {
+        //         showNotification("Please enter valid email and password", "error-notification");
+        //     }
+        // });
         signupButton.addClickListener(e -> {
-            if (isValidInput(emailField.getValue(), passwordField.getValue())) {
-                showNotification("Signup successful!", "success-notification");
-                // Navigate to dashboard after successful signup
-                signupButton.getUI().ifPresent(ui -> ui.navigate("dashboard"));
-            } else {
-                showNotification("Please enter valid email and password", "error-notification");
-            }
-        });
+    String email = emailField.getValue();
+    String password = passwordField.getValue();
+
+    if (isValidInput(email, password)) {
+        // Create a user object or map
+        Map<String, String> userMap = new HashMap<>();
+        userMap.put("email", email);
+        userMap.put("password", password);
+
+        // Use RestTemplate to send POST request
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            String url = "http://localhost:8080/user"; // Replace with your backend URL
+            restTemplate.postForObject(url, userMap, String.class);
+            showNotification("Signup successful!", "success-notification");
+            signupButton.getUI().ifPresent(ui -> ui.navigate("dashboard"));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            showNotification("Signup failed. Try again.", "error-notification");
+        }
+    } else {
+        showNotification("Please enter a valid email and password", "error-notification");
+    }
+});
 
         rightSection.add(logoIcon, formTitle, emailField, passwordField, signupButton);
         rightSection.setAlignItems(Alignment.CENTER);

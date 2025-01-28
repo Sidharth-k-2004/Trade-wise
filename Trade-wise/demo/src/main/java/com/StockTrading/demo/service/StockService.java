@@ -72,8 +72,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class StockService {
@@ -86,32 +85,32 @@ public class StockService {
     }
 
     // Fetch stock data from external API
-    public StockData fetchStockData(String symbol) {
-        String apiKey = "CLTQ9OB7M0DPLMN7";
-        String url = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=" + symbol + "&apikey=" + apiKey;
+    // public StockData fetchStockData(String symbol) {
+    //     String apiKey = "CLTQ9OB7M0DPLMN7";
+    //     String url = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=" + symbol + "&apikey=" + apiKey;
 
-        RestTemplate restTemplate = new RestTemplate();
-        try {
-            Map<String, Map<String, String>> response = restTemplate.getForObject(url, Map.class);
-            Map<String, String> globalQuote = response.get("Global Quote");
+    //     RestTemplate restTemplate = new RestTemplate();
+    //     try {
+    //         Map<String, Map<String, String>> response = restTemplate.getForObject(url, Map.class);
+    //         Map<String, String> globalQuote = response.get("Global Quote");
 
-            if (globalQuote == null) {
-                return null; // No data found
-            }
+    //         if (globalQuote == null) {
+    //             return null; // No data found
+    //         }
 
-            // Map data to StockData object
-            StockData stockData = new StockData();
-            stockData.setSymbol(globalQuote.get("01. symbol"));
-            stockData.setPrice(globalQuote.get("05. price"));
-            stockData.setChange(globalQuote.get("09. change"));
-            stockData.setPercentChange(globalQuote.get("10. change percent"));
+    //         // Map data to StockData object
+    //         StockData stockData = new StockData();
+    //         stockData.setSymbol(globalQuote.get("01. symbol"));
+    //         stockData.setPrice(globalQuote.get("05. price"));
+    //         stockData.setChange(globalQuote.get("09. change"));
+    //         stockData.setPercentChange(globalQuote.get("10. change percent"));
 
-            return stockData;
-        } catch (Exception e) {
-            System.err.println("Error fetching stock data: " + e.getMessage());
-            return null;
-        }
-    }
+    //         return stockData;
+    //     } catch (Exception e) {
+    //         System.err.println("Error fetching stock data: " + e.getMessage());
+    //         return null;
+    //     }
+    // }
 
     // Buy stocks and update user's portfolio
     public User buyStocks(int userId, String symbol, int quantity) {
@@ -180,5 +179,56 @@ public class StockService {
 
         return userRepo.save(user);
     }
+    public List<StockData> allStocks(List<String> symbols) {
+    List<StockData> stockDataList = new ArrayList<>();
+    for (String symbol : symbols) {
+        StockData stockData = fetchStockData(symbol);
+        if (stockData != null) {
+            stockDataList.add(stockData);
+        }
+    }
+    return stockDataList;
+}
+
+    public StockData fetchStockData(String symbol) {
+        String apiKey = "cu9igapr01qnf5nn4gqgcu9igapr01qnf5nn4gr0"; // Replace with your Finnhub API key
+        String url = "https://finnhub.io/api/v1/quote?symbol=" + symbol + "&token=" + apiKey;
+
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            // Fetch the data as a Map
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+
+            if (response == null || !response.containsKey("c")) {
+                System.err.println("No data found for symbol: " + symbol);
+                return null; // No data found
+            }
+
+            // Map response data to StockData object
+            StockData stockData = new StockData();
+            stockData.setSymbol(symbol);
+            stockData.setPrice(response.get("c").toString()); // Current price
+            stockData.setChange(response.get("d") != null ? formatChange(response.get("d")) : "N/A"); // Change
+            stockData.setPercentChange(response.get("dp") != null ? formatPercentChange(response.get("dp")) : "N/A"); // Percentage change
+
+            return stockData;
+        } catch (Exception e) {
+            System.err.println("Error fetching stock data for symbol: " + symbol + ". Error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // Utility method to format change value
+    private String formatChange(Object change) {
+        double changeValue = Double.parseDouble(change.toString());
+        return (changeValue > 0 ? "+" : "") + String.format("%.2f", changeValue);
+    }
+
+    // Utility method to format percentage change
+    private String formatPercentChange(Object percentChange) {
+        double percentValue = Double.parseDouble(percentChange.toString());
+        return (percentValue > 0 ? "+" : "") + String.format("%.2f", percentValue) + "%";
+    }
+
 }
 

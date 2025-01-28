@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.StockTrading.demo.model.StockData;
 import com.StockTrading.demo.service.StockService;
 import com.StockTrading.demo.model.UserStock;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 public class StockController {
@@ -26,6 +26,35 @@ public class StockController {
             throw new RuntimeException("Failed to fetch stock data for symbol: " + symbol);
         }
         return stockData;
+    }
+
+    @GetMapping("/getAllStocks")
+    public List<StockData> getAllStocks() {
+        List<String> symbols = Arrays.asList(
+    "AAPL",  // Apple Inc.
+    "MSFT",  // Microsoft Corp.
+    "GOOGL", // Alphabet Inc. (Google)
+    "AMZN",  // Amazon.com Inc.
+    "TSLA",  // Tesla Inc.
+    "NVDA",  // NVIDIA Corporation
+    "META",  // Meta Platforms Inc. (Facebook)
+    "BRK.B", // Berkshire Hathaway
+    "JNJ",   // Johnson & Johnson
+    "V",     // Visa Inc.
+    "UNH",   // UnitedHealth Group
+    "WMT",   // Walmart Inc.
+    "PG",    // Procter & Gamble
+    "DIS",   // Walt Disney Company
+    "HD",    // Home Depot Inc.
+    "NFLX",  // Netflix Inc.
+    "BABA",  // Alibaba Group
+    "XOM",   // Exxon Mobil
+    "PFE",   // Pfizer Inc.
+    "INTC"   // Intel Corporation
+);
+
+        System.out.println(stockService.allStocks(symbols));
+        return stockService.allStocks(symbols);
     }
 }
 

@@ -46,18 +46,54 @@ public class UserController {
         userService.addUser(user);
     }
     
-    @PutMapping("/addFunds")
-    public ResponseEntity<String> addFunds(@RequestBody Map<String, Object> request ) {
-        try {
-            System.out.println("addfunds");
-            int userId = (int) request.get("userId");
-            double amount=(double) request.get("amount");
-            User updatedUser = userService.addFunds(userId, amount);
-            return ResponseEntity.ok("Funds added successfully. New balance: " + updatedUser.getAvailableFunds());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+    // @PostMapping("/addFunds")
+    // public ResponseEntity<String> addFunds(@RequestBody Map<String, Object> request ) {
+    //     try {
+    //         System.out.println("addfunds");
+    //         int userId = (int) request.get("userId");
+    //         double amount=(double) request.get("amount");
+    //         User updatedUser = userService.addFunds(userId, amount);
+    //         return ResponseEntity.ok("Funds added successfully. New balance: " + updatedUser.getAvailableFunds());
+    //     } catch (IllegalArgumentException e) {
+    //         return ResponseEntity.badRequest().body(e.getMessage());
+    //     }
+    // }
+
+    @PostMapping("/addFunds")
+public ResponseEntity<String> addFunds(@RequestBody Map<String, Object> request) {
+    try {
+        System.out.println("addfunds");
+
+        // Safely extract and convert userId and amount
+        Object userIdObj = request.get("userId");
+        int userId = 0;
+        if (userIdObj instanceof Integer) {
+            userId = (Integer) userIdObj;
+        } else if (userIdObj instanceof Number) {
+            userId = ((Number) userIdObj).intValue();
+        } else {
+            return ResponseEntity.badRequest().body("Invalid userId format.");
         }
+
+        Object amountObj = request.get("amount");
+        double amount = 0.0;
+        if (amountObj instanceof Double) {
+            amount = (Double) amountObj;
+        } else if (amountObj instanceof Number) {
+            amount = ((Number) amountObj).doubleValue();
+        } else {
+            return ResponseEntity.badRequest().body("Invalid amount format.");
+        }
+
+        // Call the service to add funds
+        User updatedUser = userService.addFunds(userId, amount);
+
+        return ResponseEntity.ok("Funds added successfully. New balance: " + updatedUser.getAvailableFunds());
+    } catch (IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
+    }
+
 
     @PutMapping("/withdrawFunds")
     public ResponseEntity<String> withdrawFunds(@RequestBody Map<String, Object> request) {

@@ -3,10 +3,13 @@ package org.vaadin.example;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONObject;
+
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
@@ -29,6 +32,16 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.component.notification.Notification;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+
+import com.vaadin.flow.component.notification.Notification;
+import org.json.JSONObject;
+
 
 @Route("funds")
 @PageTitle("Funds | TradeWise")
@@ -268,6 +281,206 @@ public class FundsView extends AppLayout {
         dialog.open();
     }
 
+    private void showAddFundDialog() {
+        Dialog dialog = new Dialog();
+        dialog.setWidth("800px");
+        dialog.setHeight("450px");
+    
+        // Create the form layout
+        VerticalLayout dialogLayout = new VerticalLayout();
+        dialogLayout.setSpacing(true);
+        dialogLayout.setPadding(true);
+        dialogLayout.getStyle().set("background-color", "#E6EAF5");
+    
+        // Name field
+        TextField nameField = new TextField("Enter Name Here :");
+        nameField.setWidthFull();
+        nameField.getStyle()
+                .set("background-color", "white")
+                .set("border-radius", "4px")
+                .set("padding", "5px");
+    
+        // Amount field
+        TextField amountField = new TextField("Enter Amount for fund:");
+        amountField.setWidthFull();
+        amountField.setValue("200");
+        amountField.setPlaceholder("Margin Needed : ₹ 200");
+        amountField.getStyle()
+                .set("background-color", "white")
+                .set("border-radius", "4px")
+                .set("padding", "5px");
+    
+        // Payment option combo box
+        ComboBox<String> paymentOption = new ComboBox<>("Choose Payment Option :");
+        paymentOption.setItems("Bank Transfer", "UPI", "Credit/Debit Card", "Net Banking");
+        paymentOption.setPlaceholder("Select here");
+        paymentOption.setWidthFull();
+        paymentOption.getStyle()
+                .set("background-color", "white")
+                .set("border-radius", "4px")
+                .set("padding", "5px");
+    
+        // Buttons layout
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.setWidthFull();
+        buttonLayout.setSpacing(true);
+        buttonLayout.getStyle().set("margin-top", "20px");
+    
+        // Pay button
+        Button payButton = new Button("Pay");
+        payButton.getStyle()
+                .set("background-color", "#22C55E")
+                .set("color", "white")
+                .set("border-radius", "4px")
+                .set("flex", "1");
+        payButton.setWidthFull();
+        payButton.addClickListener(e -> {
+            try {
+                double amount = Double.parseDouble(amountField.getValue());
+                if (amount < 200) {
+                    Notification.show("Amount must be at least ₹200", 3000, Notification.Position.MIDDLE);
+                } else {
+                    // Send request to backend
+                    sendAddFundRequest(amount);
+                    updateWelcomeMessage(nameField.getValue());
+                    updateFundsDisplay(amount);
+                    dialog.close();
+                }
+            } catch (NumberFormatException ex) {
+                Notification.show("Please enter a valid amount", 3000, Notification.Position.MIDDLE);
+            }
+        });
+    
+        // Cancel button
+        Button cancelButton = new Button("Cancel");
+        cancelButton.getStyle()
+                .set("background-color", "#EF4444")
+                .set("color", "white")
+                .set("border-radius", "4px")
+                .set("flex", "1");
+        cancelButton.setWidthFull();
+        cancelButton.addClickListener(e -> dialog.close());
+    
+        // Add buttons to the button layout
+        buttonLayout.add(payButton, cancelButton);
+    
+        // Add all components to the dialog layout
+        dialogLayout.add(
+            nameField,
+            amountField,
+            paymentOption,
+            buttonLayout
+        );
+    
+        dialog.add(dialogLayout);
+        dialog.open();
+    }
+
+    // private void sendAddFundRequest(double amount) {
+    //     int userId = getCurrentUserId(); // You need to implement this method to get the current user's ID
+    //     String url = "http://localhost:8080/addFunds"; // Adjust this URL to match your backend URL
+    
+    //     JsonObject jsonObject = Json.createObject();
+    //     jsonObject.put("userId", userId);
+    //     jsonObject.put("amount", amount);
+    
+    //     HttpClient httpClient = HttpClient.create();
+    //     httpClient.putJson(url, jsonObject.toString())
+    //         .then(response -> {
+    //             if (response.getStatusCode() == 200) {
+    //                 Notification.show("Funds added successfully", 3000, Notification.Position.MIDDLE);
+    //             } else {
+    //                 Notification.show("Failed to add funds", 3000, Notification.Position.MIDDLE);
+    //             }
+    //         })
+    //         .catch_(error -> Notification.show("Error occurred: " + error.getMessage(), 3000, Notification.Position.MIDDLE));
+    // }
+
+
+    public void sendAddFundRequest(double amount) {
+        try {
+            int userId = getCurrentUserId(); // Implement this method to get the current user's ID
+            String url = "http://localhost:8080/addFunds"; // Adjust this URL to match your backend
+    
+            // Create JSON payload
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("userId", userId);
+            jsonObject.put("amount", amount);
+    
+            // Create HttpClient instance
+            HttpClient httpClient = HttpClient.newHttpClient();
+    
+            // Create request
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonObject.toString(), StandardCharsets.UTF_8))
+                    .build();
+    
+            // Send request asynchronously
+            httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenApply(HttpResponse::body)
+                    .thenAccept(responseBody -> Notification.show("Funds added successfully", 3000, Notification.Position.MIDDLE))
+                    .exceptionally(error -> {
+                        Notification.show("Error occurred: " + error.getMessage(), 3000, Notification.Position.MIDDLE);
+                        return null;
+                    });
+        } catch (Exception e) {
+            Notification.show("Error occurred: " + e.getMessage(), 3000, Notification.Position.MIDDLE);
+        }
+    }
+
+    private int getCurrentUserId() {
+        // Implement this method to return the current user's ID
+        // This could be stored in the session or retrieved from a service
+        return 1; // Placeholder return value
+    }
+    private void updateWelcomeMessage(String userName) {
+        H2 welcomeText = (H2) getContent().getChildren()
+                .filter(component -> component instanceof H2)
+                .findFirst()
+                .orElse(null);
+        
+        if (welcomeText != null) {
+            welcomeText.setText("Hi, " + userName + "!");
+        }
+    }
+
+    private void updateFundsDisplay(double amount) {
+        VerticalLayout fundsSection = (VerticalLayout) getContent().getChildren()
+                .filter(component -> component instanceof VerticalLayout)
+                .findFirst()
+                .orElse(null);
+        
+        if (fundsSection != null) {
+            fundsSection.removeAll();
+            
+            H2 availableAmount = new H2("Available Amount: ₹" + amount);
+            H2 usedAmount = new H2("Used Amount: ₹0");
+            
+            fundsSection.add(availableAmount, usedAmount);
+            
+            // Re-add the buttons
+            HorizontalLayout buttonsLayout = new HorizontalLayout();
+            buttonsLayout.addClassName("funds-buttons");
+            buttonsLayout.setSpacing(true);
+    
+            Button addFundButton = new Button("Add Fund", new Icon(VaadinIcon.PLUS));
+            addFundButton.addClassName("add-fund-button");
+            addFundButton.addClickListener(e -> showAddFundDialog());
+    
+            Button withdrawFundButton = new Button("Withdraw Fund", new Icon(VaadinIcon.MINUS));
+            withdrawFundButton.addClassName("withdraw-fund-button");
+            withdrawFundButton.setEnabled(true);
+            withdrawFundButton.addClickListener(e -> {
+                // Withdraw fund logic here
+            });
+    
+            buttonsLayout.add(addFundButton, withdrawFundButton);
+            fundsSection.add(buttonsLayout);
+        }
+    }
+
     private void createMainContent() {
         // Main content layout
         VerticalLayout mainContent = new VerticalLayout();
@@ -305,9 +518,7 @@ public class FundsView extends AppLayout {
 
         Button addFundButton = new Button("Add Fund", new Icon(VaadinIcon.PLUS));
         addFundButton.addClassName("add-fund-button");
-        addFundButton.addClickListener(e -> {
-            // Add fund logic here
-        });
+        addFundButton.addClickListener(e -> showAddFundDialog());
 
         Button withdrawFundButton = new Button("Withdraw Fund", new Icon(VaadinIcon.MINUS));
         withdrawFundButton.addClassName("withdraw-fund-button");

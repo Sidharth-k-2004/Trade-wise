@@ -695,3 +695,28 @@ vaadin-app-layout::part(drawer) {
 .profile-button:hover {
   background-color: var(--lumo-contrast-5pct);
 }
+
+
+
+
+.watchlist-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875em;
+}
+
+.badge.success {
+  background-color: var(--lumo-success-color-10pct);
+  color: var(--lumo-success-text-color);
+}
+
+.badge.error {
+  background-color: var(--lumo-error-color-10pct);
+  color: var(--lumo-error-text-color);
+}

@@ -4,15 +4,15 @@ public class Stock {
     private String symbol;
     private double price;
     private String change;
-    private String changePercentage;
+    private String percentChange;
 
     public Stock() {}
 
-    public Stock(String symbol, double price, String change, String changePercentage) {
+    public Stock(String symbol, double price, String change, String percentChange) {
         this.symbol = symbol;
         this.price = price;
         this.change = change;
-        this.changePercentage = changePercentage;
+        this.percentChange = percentChange;
     }
 
     // Getters and setters
@@ -22,8 +22,14 @@ public class Stock {
     public void setPrice(double price) { this.price = price; }
     public String getChange() { return change; }
     public void setChange(String change) { this.change = change; }
-    public String getChangePercentage() { return changePercentage; }
-    public void setChangePercentage(String changePercentage) { this.changePercentage = changePercentage; }
+    // public String getChangePercentage() { return percentChange; }
+    // public void setChangePercentage(String percentChange) { this.percentChange = percentChange; }
+    public void setPercentChange(String percentChange) {
+        this.percentChange = percentChange;
+    }
+    public String getPercentChange() {
+        return percentChange;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -44,7 +50,7 @@ public class Stock {
                 "symbol='" + symbol + '\'' +
                 ", price='" + price + '\'' +
                 ", change='" + change + '\'' +
-                ", changePercentage='" + changePercentage + '\'' +
+                ", percentChange='" + percentChange + '\'' +
                 '}';
     }
 }

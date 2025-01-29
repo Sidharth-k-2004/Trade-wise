@@ -1,5 +1,3 @@
-
-
 package org.vaadin.example;
 
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -120,7 +118,17 @@ public class WishlistView extends AppLayout {
 
             Icon arrow;
             String changeClass;
-            if (Double.parseDouble(stock.getChangePercentage()) >= 0) {
+            double changePercentage;
+            try {
+                String percentChange = stock.getPercentChange(); // e.g., "+3.65%"
+                String percentChangeReplaced = percentChange.replace("%", ""); // Removes the %
+
+                changePercentage = Double.parseDouble(percentChangeReplaced);
+            } catch (NumberFormatException | NullPointerException e) {
+                changePercentage = 0.0; // Default value if parsing fails
+            }
+
+            if( (changePercentage) >= 0) {
                 arrow = VaadinIcon.ARROW_UP.create();
                 arrow.setColor("var(--lumo-success-color)");
                 changeClass = "change-positive";
@@ -129,8 +137,10 @@ public class WishlistView extends AppLayout {
                 arrow.setColor("var(--lumo-error-color)");
                 changeClass = "change-negative";
             }
+            String percentChange = stock.getPercentChange(); // e.g., "+3.65%"
+            String percentChangeReplaced = percentChange.replace("%", ""); // Removes the %
+            Span changeValue = new Span(String.format("%.2f%%", Double.parseDouble(percentChangeReplaced)));
 
-            Span changeValue = new Span(String.format("%.2f%%", stock.getChangePercentage()));
             changeValue.addClassName(changeClass);
 
             changeLayout.add(arrow, changeValue);

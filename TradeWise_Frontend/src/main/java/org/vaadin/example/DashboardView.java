@@ -118,9 +118,10 @@ public class DashboardView extends AppLayout {
 
             Span symbol = new Span(stock.getSymbol());
             Span price = new Span(String.format("%.2f", stock.getPrice()));
-            String percentChange = stock.getPercentChange(); // e.g., "+3.65%"
+            String percentChange = stock.getPercentChange(); 
             String percentChangeReplaced = percentChange.replace("%", ""); // Removes the %
-            Span change = new Span(String.format("%.2f%%", percentChangeReplaced));
+            double percentChangeDouble = Double.parseDouble(percentChangeReplaced);
+            Span change = new Span(String.format("%.2f%%", percentChangeDouble));
             change.getElement().getThemeList().add(Double.parseDouble(percentChangeReplaced) >= 0 ? "badge success" : "badge error");
 
             HorizontalLayout infoLayout = new HorizontalLayout(symbol, price, change);

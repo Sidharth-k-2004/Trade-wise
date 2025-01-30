@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.vaadin.example.service.WatchlistService;
 
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -40,18 +38,17 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import org.vaadin.example.Stock;
 
+import com.vaadin.flow.component.notification.Notification;
+import org.json.JSONObject;
 
 
 @Route("funds")
 @PageTitle("Funds | TradeWise")
 public class FundsView extends AppLayout {
+    
 
-    private final WatchlistService watchlistService;
-
-    @Autowired
-    public FundsView(WatchlistService watchlistService) {
+    public FundsView() {
         createHeader();
         createDrawer();
         createMainContent();
@@ -72,7 +69,8 @@ public class FundsView extends AppLayout {
             createTab("Orders", VaadinIcon.CART, "orders"),
             createTab("Holdings", VaadinIcon.CHART, "holdings"),
             createTab("Positions", VaadinIcon.TRENDING_UP, "positions"),
-            createTab("Funds", VaadinIcon.WALLET, "funds")
+            createTab("Funds", VaadinIcon.WALLET, "funds"),
+            createTab("Wishlist", VaadinIcon.HEART, "wishlist")
         );
         tabs.addClassName("navigation-tabs");
         
@@ -146,11 +144,9 @@ public class FundsView extends AppLayout {
 
             Span symbol = new Span(stock.getSymbol());
             Span price = new Span(String.format("%.2f", stock.getPrice()));
-            String percentChange = stock.getPercentChange(); 
-            String percentChangeReplaced = percentChange.replace("%", ""); 
-            double percentChangeDouble = Double.parseDouble(percentChangeReplaced);
-            Span change = new Span(String.format("%.2f%%", percentChangeDouble));
-            change.getElement().getThemeList().add(Double.parseDouble(percentChangeReplaced) >= 0 ? "badge success" : "badge error");
+            Span change = new Span(String.format("%.2f", stock.getChange()));
+
+            change.getElement().getThemeList().add(stock.getChange() >= 0 ? "badge success" : "badge error");
 
             HorizontalLayout infoLayout = new HorizontalLayout(symbol, price, change);
             infoLayout.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -183,13 +179,21 @@ public class FundsView extends AppLayout {
             return layout;
         })).setAutoWidth(true);
 
-        grid.setItems(watchlistService.getWatchlist());
+        grid.setItems(createDummyStocks());
         grid.addClassName("watchlist-table");
 
         return grid;
     }
 
-    
+    private List<Stock> createDummyStocks() {
+        List<Stock> stocks = new ArrayList<>();
+        stocks.add(new Stock("AAPL", 150.25, 1.5));
+        stocks.add(new Stock("GOOGL", 2750.10, -0.5));
+        stocks.add(new Stock("MSFT", 305.75, 0.8));
+        stocks.add(new Stock("AMZN", 3300.50, -1.2));
+        stocks.add(new Stock("TSLA", 750.80, 2.3));
+        return stocks;
+    }
 
     private void showTradeDialog(Stock stock, boolean isBuy) {
         Dialog dialog = new Dialog();
@@ -374,6 +378,99 @@ public class FundsView extends AppLayout {
         dialog.open();
     }
 
+
+    private void showWithdrawDialog(double availableAmount) {
+        Dialog dialog = new Dialog();
+        dialog.setWidth("800px");
+        dialog.setHeight("400px");
+    
+        // Create the form layout
+        VerticalLayout dialogLayout = new VerticalLayout();
+        dialogLayout.setSpacing(true);
+        dialogLayout.setPadding(true);
+        dialogLayout.getStyle().set("background-color", "#E6EAF5");
+    
+        // Available balance display
+        H2 balanceTitle = new H2("Available Balance: ₹" + availableAmount);
+        balanceTitle.getStyle().set("color", "#333");
+    
+        // Amount field
+        TextField amountField = new TextField("Enter Amount to Withdraw:");
+        amountField.setWidthFull();
+        amountField.getStyle()
+                .set("background-color", "white")
+                .set("border-radius", "4px")
+                .set("padding", "5px");
+    
+        // Withdrawal method combo box
+        ComboBox<String> withdrawalMethod = new ComboBox<>("Choose Withdrawal Method:");
+        withdrawalMethod.setItems("Bank Transfer", "UPI");
+        withdrawalMethod.setPlaceholder("Select method");
+        withdrawalMethod.setWidthFull();
+        withdrawalMethod.getStyle()
+                .set("background-color", "white")
+                .set("border-radius", "4px")
+                .set("padding", "5px");
+    
+        // Buttons layout
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.setWidthFull();
+        buttonLayout.setSpacing(true);
+        buttonLayout.getStyle().set("margin-top", "20px");
+    
+        // Withdraw button
+        Button withdrawButton = new Button("Withdraw");
+        withdrawButton.getStyle()
+                .set("background-color", "#22C55E")
+                .set("color", "white")
+                .set("border-radius", "4px")
+                .set("flex", "1");
+        withdrawButton.setWidthFull();
+        withdrawButton.addClickListener(e -> {
+            try {
+                double withdrawAmount = Double.parseDouble(amountField.getValue());
+                if (withdrawAmount <= 0) {
+                    Notification.show("Please enter a valid amount", 3000, Notification.Position.MIDDLE);
+                } else if (withdrawAmount > availableAmount) {
+                    Notification.show("Insufficient funds", 3000, Notification.Position.MIDDLE);
+                } else if ((availableAmount - withdrawAmount) < 200) {
+                    Notification.show("Cannot withdraw below margin requirement of ₹200", 3000, Notification.Position.MIDDLE);
+                } else {
+                    // Send request to backend
+                    sendWithdrawRequest(withdrawAmount);
+                    updateFundsDisplay(availableAmount - withdrawAmount);
+                    dialog.close();
+                }
+            } catch (NumberFormatException ex) {
+                Notification.show("Please enter a valid amount", 3000, Notification.Position.MIDDLE);
+            }
+        });
+    
+        // Cancel button
+        Button cancelButton = new Button("Cancel");
+        cancelButton.getStyle()
+                .set("background-color", "#EF4444")
+                .set("color", "white")
+                .set("border-radius", "4px")
+                .set("flex", "1");
+        cancelButton.setWidthFull();
+        cancelButton.addClickListener(e -> dialog.close());
+    
+        // Add buttons to the button layout
+        buttonLayout.add(withdrawButton, cancelButton);
+    
+        // Add all components to the dialog layout
+        dialogLayout.add(
+            balanceTitle,
+            amountField,
+            withdrawalMethod,
+            buttonLayout
+        );
+    
+        dialog.add(dialogLayout);
+        dialog.open();
+    }
+
     public void sendAddFundRequest(double amount) {
         try {
             int userId = getCurrentUserId(); // Implement this method to get the current user's ID
@@ -398,6 +495,34 @@ public class FundsView extends AppLayout {
             httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
                     .thenAccept(responseBody -> Notification.show("Funds added successfully", 3000, Notification.Position.MIDDLE))
+                    .exceptionally(error -> {
+                        Notification.show("Error occurred: " + error.getMessage(), 3000, Notification.Position.MIDDLE);
+                        return null;
+                    });
+        } catch (Exception e) {
+            Notification.show("Error occurred: " + e.getMessage(), 3000, Notification.Position.MIDDLE);
+        }
+    }
+
+    private void sendWithdrawRequest(double amount) {
+        try {
+            int userId = getCurrentUserId();
+            String url = "http://localhost:8080/withdrawFunds";
+    
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("userId", userId);
+            jsonObject.put("amount", amount);
+    
+            HttpClient httpClient = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonObject.toString(), StandardCharsets.UTF_8))
+                    .build();
+    
+            httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenApply(HttpResponse::body)
+                    .thenAccept(responseBody -> Notification.show("Withdrawal successful", 3000, Notification.Position.MIDDLE))
                     .exceptionally(error -> {
                         Notification.show("Error occurred: " + error.getMessage(), 3000, Notification.Position.MIDDLE);
                         return null;
@@ -448,15 +573,15 @@ public class FundsView extends AppLayout {
     
             Button withdrawFundButton = new Button("Withdraw Fund", new Icon(VaadinIcon.MINUS));
             withdrawFundButton.addClassName("withdraw-fund-button");
-            withdrawFundButton.setEnabled(true);
-            withdrawFundButton.addClickListener(e -> {
-                // Withdraw fund logic here
-            });
+            // Enable withdraw button only if amount is above margin requirement
+            withdrawFundButton.setEnabled(amount > 200);
+            withdrawFundButton.addClickListener(e -> showWithdrawDialog(amount));
     
             buttonsLayout.add(addFundButton, withdrawFundButton);
             fundsSection.add(buttonsLayout);
         }
     }
+    
 
     private void createMainContent() {
         // Main content layout

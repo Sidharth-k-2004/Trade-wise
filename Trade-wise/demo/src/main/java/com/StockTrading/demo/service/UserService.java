@@ -35,17 +35,35 @@ public class UserService {
         userRepo.deleteById(userId);
     }
 
+    // public User addFunds(int userId, double amount) {
+    //     Optional<User> optionalUser = userRepo.findById(userId);
+    //     if (optionalUser.isPresent()) {
+    //         User user = optionalUser.get();
+    //         user.setAvailableFunds(user.getAvailableFunds() + amount);
+    //         System.out.println("hii");
+    //         return userRepo.save(user);
+    //     } else {
+    //         throw new IllegalArgumentException("User not found with ID: " + userId);
+    //     }
+    // }
+
+
     public User addFunds(int userId, double amount) {
         Optional<User> optionalUser = userRepo.findById(userId);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            user.setAvailableFunds(user.getAvailableFunds() + amount);
-            System.out.println("hii");
-            return userRepo.save(user);
+            double newBalance = user.getAvailableFunds() + amount;
+            user.setAvailableFunds(newBalance);
+            
+            // Save the updated user back to the database
+            userRepo.save(user);
+            
+            return user;
         } else {
             throw new IllegalArgumentException("User not found with ID: " + userId);
         }
     }
+    
     public User withdrawFunds(int userId, double amount) {
         Optional<User> optionalUser = userRepo.findById(userId);
         if (optionalUser.isPresent()) {

@@ -105,6 +105,13 @@ public class ProfileMenu extends Dialog {
             "});"
         );
 
+        if (text.equals("Learn to use")) {
+            menuItem.addClickListener(e -> {
+                getUI().ifPresent(ui -> ui.navigate("learn-to-use"));
+                this.close(); // Close the profile menu
+            });
+        }
+
         return menuItem;
     }
 

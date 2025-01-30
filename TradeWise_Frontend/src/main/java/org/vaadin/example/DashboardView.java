@@ -24,8 +24,6 @@ import com.vaadin.flow.server.StreamResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.example.service.WatchlistService;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @Route("dashboard")
 @PageTitle("Dashboard | TradeWise")

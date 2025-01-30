@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.vaadin.example.service.WatchlistService;
 
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -38,16 +40,18 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import org.vaadin.example.Stock;
 
-import com.vaadin.flow.component.notification.Notification;
-import org.json.JSONObject;
 
 
 @Route("funds")
 @PageTitle("Funds | TradeWise")
 public class FundsView extends AppLayout {
 
-    public FundsView() {
+    private final WatchlistService watchlistService;
+
+    @Autowired
+    public FundsView(WatchlistService watchlistService) {
         createHeader();
         createDrawer();
         createMainContent();
@@ -142,9 +146,11 @@ public class FundsView extends AppLayout {
 
             Span symbol = new Span(stock.getSymbol());
             Span price = new Span(String.format("%.2f", stock.getPrice()));
-            Span change = new Span(String.format("%.2f", stock.getChange()));
-
-            change.getElement().getThemeList().add(stock.getChange() >= 0 ? "badge success" : "badge error");
+            String percentChange = stock.getPercentChange(); 
+            String percentChangeReplaced = percentChange.replace("%", ""); 
+            double percentChangeDouble = Double.parseDouble(percentChangeReplaced);
+            Span change = new Span(String.format("%.2f%%", percentChangeDouble));
+            change.getElement().getThemeList().add(Double.parseDouble(percentChangeReplaced) >= 0 ? "badge success" : "badge error");
 
             HorizontalLayout infoLayout = new HorizontalLayout(symbol, price, change);
             infoLayout.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -177,21 +183,13 @@ public class FundsView extends AppLayout {
             return layout;
         })).setAutoWidth(true);
 
-        grid.setItems(createDummyStocks());
+        grid.setItems(watchlistService.getWatchlist());
         grid.addClassName("watchlist-table");
 
         return grid;
     }
 
-    private List<Stock> createDummyStocks() {
-        List<Stock> stocks = new ArrayList<>();
-        stocks.add(new Stock("AAPL", 150.25, 1.5));
-        stocks.add(new Stock("GOOGL", 2750.10, -0.5));
-        stocks.add(new Stock("MSFT", 305.75, 0.8));
-        stocks.add(new Stock("AMZN", 3300.50, -1.2));
-        stocks.add(new Stock("TSLA", 750.80, 2.3));
-        return stocks;
-    }
+    
 
     private void showTradeDialog(Stock stock, boolean isBuy) {
         Dialog dialog = new Dialog();
@@ -375,27 +373,6 @@ public class FundsView extends AppLayout {
         dialog.add(dialogLayout);
         dialog.open();
     }
-
-    // private void sendAddFundRequest(double amount) {
-    //     int userId = getCurrentUserId(); // You need to implement this method to get the current user's ID
-    //     String url = "http://localhost:8080/addFunds"; // Adjust this URL to match your backend URL
-    
-    //     JsonObject jsonObject = Json.createObject();
-    //     jsonObject.put("userId", userId);
-    //     jsonObject.put("amount", amount);
-    
-    //     HttpClient httpClient = HttpClient.create();
-    //     httpClient.putJson(url, jsonObject.toString())
-    //         .then(response -> {
-    //             if (response.getStatusCode() == 200) {
-    //                 Notification.show("Funds added successfully", 3000, Notification.Position.MIDDLE);
-    //             } else {
-    //                 Notification.show("Failed to add funds", 3000, Notification.Position.MIDDLE);
-    //             }
-    //         })
-    //         .catch_(error -> Notification.show("Error occurred: " + error.getMessage(), 3000, Notification.Position.MIDDLE));
-    // }
-
 
     public void sendAddFundRequest(double amount) {
         try {

@@ -18,6 +18,7 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.component.html.Anchor;
 
 @Route("signup")
 @PageTitle("Sign Up | TradeWise")
@@ -98,18 +99,11 @@ public class SignupView extends VerticalLayout {
 
         Button signupButton = new Button("Signup");
         signupButton.addClassName("signup-button");
-        // signupButton.addClickListener(e -> {
-        //     if (isValidInput(emailField.getValue(), passwordField.getValue())) {
-        //         showNotification("Signup successful!", "success-notification");
-        //         // Navigate to dashboard after successful signup
-        //         signupButton.getUI().ifPresent(ui -> ui.navigate("dashboard"));
-        //     } else {
-        //         showNotification("Please enter valid email and password", "error-notification");
-        //     }
-        // });
         signupButton.addClickListener(e -> {
     String email = emailField.getValue();
     String password = passwordField.getValue();
+        
+        
 
     if (isValidInput(email, password)) {
         // Create a user object or map
@@ -132,12 +126,19 @@ public class SignupView extends VerticalLayout {
         showNotification("Please enter a valid email and password", "error-notification");
     }
 });
+        Div loginPrompt = new Div();
+        loginPrompt.setText("Already have an account? ");
+        Anchor loginLink = new Anchor("login", "Login");
+        loginLink.addClassName("login-link");
+        loginPrompt.add(loginLink);
+        loginPrompt.addClassName("login-prompt");
 
-        rightSection.add(logoIcon, formTitle, emailField, passwordField, signupButton);
+        rightSection.add(logoIcon, formTitle, emailField, passwordField, signupButton, loginPrompt);
         rightSection.setAlignItems(Alignment.CENTER);
         rightSection.setJustifyContentMode(JustifyContentMode.CENTER);
 
         return rightSection;
+        
     }
 
     private boolean isValidInput(String email, String password) {

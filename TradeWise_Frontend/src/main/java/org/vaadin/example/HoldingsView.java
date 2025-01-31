@@ -78,7 +78,8 @@ public class HoldingsView extends AppLayout {
             createTab("Orders", VaadinIcon.CART, "orders"),
             createTab("Holdings", VaadinIcon.CHART, "holdings"),
             createTab("Positions", VaadinIcon.TRENDING_UP, "positions"),
-            createTab("Funds", VaadinIcon.WALLET, "funds")
+            createTab("Funds", VaadinIcon.WALLET, "funds"),
+            createTab("Wishlist", VaadinIcon.HEART, "wishlist")
         );
         tabs.addClassName("navigation-tabs");
         

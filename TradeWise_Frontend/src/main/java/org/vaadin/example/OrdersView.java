@@ -17,6 +17,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
@@ -54,7 +55,8 @@ public class OrdersView extends AppLayout {
             createTab("Orders", VaadinIcon.CART, "orders"),
             createTab("Holdings", VaadinIcon.CHART, "holdings"),
             createTab("Positions", VaadinIcon.TRENDING_UP, "positions"),
-            createTab("Funds", VaadinIcon.WALLET, "funds")
+            createTab("Funds", VaadinIcon.WALLET, "funds"),
+            createTab("Wishlist", VaadinIcon.HEART, "wishlist")
         );
         tabs.addClassName("navigation-tabs");
 
@@ -285,29 +287,165 @@ public class OrdersView extends AppLayout {
         setContent(mainContent);
     }
 
-
-    private void createOrdersSection(VerticalLayout mainContent) {
-        VerticalLayout ordersSection = new VerticalLayout();
-        ordersSection.addClassName("orders-section");
-
-        H3 ordersTitle = new H3("Orders");
-        ordersTitle.addClassName("section-title");
-
-        Div noOrdersMessage = new Div();
-        noOrdersMessage.setText("You haven't placed any orders");
-        noOrdersMessage.addClassName("no-orders-message");
-
-        Button getStartedButton = new Button("Get Started");
-        getStartedButton.addClassName("get-started-button");
-        getStartedButton.addClickListener(e -> {
-            // Add logic for "Get Started" action
-            getStartedButton.getUI().ifPresent(ui -> ui.navigate("place-order"));
-        });
-
-        ordersSection.add(ordersTitle, noOrdersMessage, getStartedButton);
-        ordersSection.setAlignItems(FlexComponent.Alignment.CENTER);
-        mainContent.add(ordersSection);
+    private void showGetStartedDialog() {
+        Dialog dialog = new Dialog();
+        dialog.setWidth("700px");
+        
+        VerticalLayout dialogLayout = new VerticalLayout();
+        dialogLayout.setSpacing(false);
+        dialogLayout.setPadding(false);
+        dialogLayout.getStyle()
+            .set("background-color", "#F8FAFF");
+    
+        // Search section with BSE/NSE options
+        TextField searchField = new TextField();
+        searchField.setPlaceholder("Search for stocks");
+        searchField.setWidthFull();
+        searchField.getStyle()
+            .set("--lumo-contrast-10pct", "#E8EFF5")
+            .set("margin", "10");
+    
+        // BSE/NSE radio group
+        RadioButtonGroup<String> exchangeGroup = new RadioButtonGroup<>();
+        exchangeGroup.setItems("BSE", "NSE");
+        exchangeGroup.setValue("BSE");
+        exchangeGroup.setThemeName("horizontal");
+        
+        // Price displays
+        Span bsePrice = new Span("₹ 232.75");
+        Span nsePrice = new Span("₹ 232.75");
+        
+        HorizontalLayout priceLayout = new HorizontalLayout();
+        priceLayout.setWidthFull();
+        priceLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        
+        HorizontalLayout bseLayout = new HorizontalLayout();
+        bseLayout.add(new Radio("BSE"), bsePrice);
+        bseLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        
+        HorizontalLayout nseLayout = new HorizontalLayout();
+        nseLayout.add(new Radio("NSE"), nsePrice);
+        nseLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        
+        priceLayout.add(bseLayout, nseLayout);
+    
+        // Trade type selection
+        RadioButtonGroup<String> tradeType = new RadioButtonGroup<>();
+        tradeType.setItems("Intraday", "Longterm");
+        tradeType.setValue("Intraday");
+        tradeType.setThemeName("horizontal");
+        tradeType.getStyle().set("margin-top", "20px");
+    
+        // Input fields
+        HorizontalLayout fieldsLayout = new HorizontalLayout();
+        fieldsLayout.setWidthFull();
+        fieldsLayout.setSpacing(true);
+    
+        TextField qtyField = new TextField();
+        qtyField.setLabel("Qty");
+        qtyField.setWidthFull();
+    
+        TextField priceField = new TextField();
+        priceField.setLabel("Price");
+        priceField.setWidthFull();
+    
+        TextField triggerField = new TextField();
+        triggerField.setLabel("Trigger Price");
+        triggerField.setWidthFull();
+    
+        fieldsLayout.add(qtyField, priceField, triggerField);
+    
+        // Margin section
+        HorizontalLayout marginLayout = new HorizontalLayout();
+        marginLayout.setWidthFull();
+        marginLayout.getStyle()
+            .set("background-color", "#EBEEF2")
+            .set("padding", "15px")
+            .set("border-radius", "4px")
+            .set("margin-top", "20px");
+    
+        Span marginLabel = new Span("Margin required : ");
+        Span marginAmount = new Span("₹ 232.75");
+        marginLayout.add(marginLabel, marginAmount);
+        marginLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+    
+        // Buttons
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.setWidthFull();
+        buttonLayout.setSpacing(true);
+        buttonLayout.getStyle().set("margin-top", "20px");
+    
+        Button buyButton = new Button("BUY");
+        buyButton.getStyle()
+            .set("background-color", "#6B8FF9")
+            .set("color", "white")
+            .set("border-radius", "4px")
+            .set("width", "50%");
+    
+        Button cancelButton = new Button("CANCEL");
+        cancelButton.getStyle()
+            .set("background-color", "white")
+            .set("color", "#1A1A1A")
+            .set("border", "1px solid #E5E7EB")
+            .set("border-radius", "4px")
+            .set("width", "50%");
+        
+        cancelButton.addClickListener(e -> dialog.close());
+        
+        buttonLayout.add(buyButton, cancelButton);
+    
+        // Add all components to dialog
+        dialogLayout.add(
+            searchField,
+            priceLayout,
+            tradeType,
+            fieldsLayout,
+            marginLayout,
+            buttonLayout
+        );
+    
+        dialog.add(dialogLayout);
+        dialog.open();
     }
+
+private void createOrdersSection(VerticalLayout mainContent) {
+    VerticalLayout ordersSection = new VerticalLayout();
+    ordersSection.addClassName("orders-section");
+
+    H3 ordersTitle = new H3("Orders");
+    ordersTitle.addClassName("section-title");
+
+    Div noOrdersMessage = new Div();
+    noOrdersMessage.setText("You haven't placed any orders");
+    noOrdersMessage.addClassName("no-orders-message");
+
+    Button getStartedButton = new Button("Get Started");
+    getStartedButton.addClassName("get-started-button");
+    getStartedButton.addClickListener(e -> showGetStartedDialog());
+
+    ordersSection.add(ordersTitle, noOrdersMessage, getStartedButton);
+    ordersSection.setAlignItems(FlexComponent.Alignment.CENTER);
+    mainContent.add(ordersSection);
+}
+
+
+private static class Radio extends Div {
+    public Radio(String label) {
+        getStyle()
+            .set("width", "20px")
+            .set("height", "20px")
+            .set("border", "2px solid #6B8FF9")
+            .set("border-radius", "50%")
+            .set("margin-right", "8px")
+            .set("cursor", "pointer");
+        
+        Span labelSpan = new Span(label);
+        labelSpan.getStyle().set("margin-left", "8px");
+        
+        add(labelSpan);
+    }
+}
+
 
     private Tab createTab(String text, VaadinIcon icon, String route) {
         Icon tabIcon = icon.create();

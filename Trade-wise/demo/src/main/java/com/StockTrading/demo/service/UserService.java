@@ -18,9 +18,15 @@ public class UserService {
         return userRepo.findAll();
     }
     
-    public User getUsersById(int userId){
+    public boolean isValidUser(String email, String pass) {
+        Optional<User> userOptional = userRepo.findByEmail(email);
+    
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            return user.getPassword().equals(pass);  // Direct string comparison (Not Secure!)
+        }
         
-        return userRepo.findById(userId).orElse(new User());
+        return false; // User not found
     }
 
     public void addUser(User newUser){

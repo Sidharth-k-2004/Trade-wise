@@ -31,6 +31,10 @@ public class User {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserStock> ownedStocks; 
 
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<UserStock> wishListedStocks; 
+
+
     public User(int userId, String username, String email, String password, double availableFunds, LocalDateTime createdAt) {
         this.userId = userId;
         this.username = username;
@@ -39,6 +43,7 @@ public class User {
         this.availableFunds = availableFunds;
         this.createdAt = createdAt;
         this.ownedStocks = new ArrayList<>(); 
+        this.wishListedStocks=new ArrayList<>();
     }
 
     public User() {
@@ -98,6 +103,13 @@ public class User {
     public void setOwnedStocks(List<UserStock> ownedStocks) {
         this.ownedStocks = ownedStocks;
     }
+    public List<UserStock> getWishListedStocks() {
+        return wishListedStocks;
+    }
+
+    public void setWishListedStocks(List<UserStock> wishListedStocks) {
+        this.wishListedStocks = wishListedStocks;
+    }
 
     // Add a stock to the user's list
     public void addStock(UserStock stock) {
@@ -107,6 +119,14 @@ public class User {
     // Remove a stock from the user's list
     public void removeStock(String symbol) {
         ownedStocks.removeIf(stock -> stock.getSymbol().equals(symbol));
+    }
+    public void addWishListedStock(UserStock stock) {
+        wishListedStocks.add(stock);
+    }
+
+    // Remove a stock from the user's list
+    public void removeWishListedStock(String symbol) {
+        wishListedStocks.removeIf(stock -> stock.getSymbol().equals(symbol));
     }
 
     @Override

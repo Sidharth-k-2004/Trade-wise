@@ -917,3 +917,11 @@ vaadin-app-layout::part(drawer) {
   }
 }
 
+
+
+.portfolio-chart {
+  padding: 1rem;
+  background: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius);
+  box-shadow: var(--lumo-box-shadow-xs);
+}

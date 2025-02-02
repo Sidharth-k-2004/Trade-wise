@@ -1,5 +1,6 @@
 package com.StockTrading.demo.service;
 
+import com.StockTrading.demo.model.StockData;
 import com.StockTrading.demo.model.User;
 import com.StockTrading.demo.repository.UserRepo;
 
@@ -18,15 +19,39 @@ public class UserService {
         return userRepo.findAll();
     }
     
-    public boolean isValidUser(String email, String pass) {
-        Optional<User> userOptional = userRepo.findByEmail(email);
+    // public boolean isValidUser(String email, String pass) {
+    //     Optional<User> userOptional = userRepo.findByEmail(email);
     
+    //     if (userOptional.isPresent()) {
+    //         User user = userOptional.get();
+    //         return user.getPassword().equals(pass);  // Direct string comparison (Not Secure!)
+    //     }
+        
+    //     return false; // User not found
+    // }
+
+    public Map<String, Object> authenticateUser(String email, String password) {
+        // Check if user exists in the database
+        Optional<User> userOptional = userRepo.findByEmail(email);
+        
+        Map<String, Object> response = new HashMap<>();
+        
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            return user.getPassword().equals(pass);  // Direct string comparison (Not Secure!)
+            
+            // Check if the password matches
+            if (user.getPassword().equals(password)) { // Secure password comparison with hashing is recommended
+                response.put("userId", user.getUserId());  // Store userId
+                response.put("status", "success");
+                System.out.println("hiiiiiiiiiiiiiii");
+                return response;
+            }
         }
-        
-        return false; // User not found
+
+        // If authentication fails
+        response.put("status", "error");
+        response.put("message", "Invalid email or password");
+        return response;
     }
 
     public void addUser(User newUser){
@@ -93,6 +118,65 @@ public class UserService {
             throw new IllegalArgumentException("User not found with ID: " + userId);
         }
     }
+
+    public void addToWishlist(int userId, StockData stock) {
+        Optional<User> optionalUser = userRepo.findById(userId);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.getWishListedStocks().add(stock);
+            userRepo.save(user);
+        } else {
+            throw new IllegalArgumentException("User not found with ID: " + userId);
+        }
+    }
+    
+    public void removeFromWishlist(int userId, String stockSymbol) {
+        Optional<User> optionalUser = userRepo.findById(userId);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.getWishListedStocks().removeIf(stock -> stock.getSymbol().equals(stockSymbol));
+            userRepo.save(user);
+        } else {
+            throw new IllegalArgumentException("User not found with ID: " + userId);
+        }
+    }
+    
+    public List<StockData> getWishlist(int userId) {
+        Optional<User> optionalUser = userRepo.findById(userId);
+        return optionalUser.map(User::getWishListedStocks).orElse(Collections.emptyList());
+    }
+
+    public void addStocksToWishlist(Integer userId, List<Map<String, Object>> stockList) {
+        Optional<User> userOptional = userRepo.findById(userId);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+    
+            // Convert Map to StockData objects and add to wishlist
+            for (Map<String, Object> stockData : stockList) {
+                StockData stock = new StockData();
+                stock.setSymbol((String) stockData.get("symbol"));
+                stock.setPrice(stockData.get("price").toString()); // Keeping price as String
+                stock.setChange((String) stockData.get("change"));
+                stock.setPercentChange((String) stockData.get("percentChange"));
+    
+                user.addWishListedStock(stock);
+            }
+    
+            // Save updated user with wishlist
+            userRepo.save(user);
+        } else {
+            throw new IllegalArgumentException("User not found with ID: " + userId);
+        }
+    }
+
+    public List<StockData> getWishlistedStocks(Integer userId) {
+        Optional<User> userOptional = userRepo.findById(userId);
+        
+        return userOptional.map(User::getWishListedStocks).orElse(List.of()); // Return wishlist or empty list
+    }
+    
+    
+    
 
 
 

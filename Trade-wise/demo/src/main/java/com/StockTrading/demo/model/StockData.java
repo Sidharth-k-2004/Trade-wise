@@ -1,10 +1,29 @@
 package com.StockTrading.demo.model;
 
 
+import org.springframework.stereotype.Component;
+
 import com.StockTrading.demo.model.UserStock;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Component
+@Entity 
+@Table(name = "stock_data") 
 public class StockData {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;  // Add an ID field as primary key
     private String symbol;
     private String price;
+    
+    @Column(name = "price_change")
     private String change;
     private String percentChange;
     

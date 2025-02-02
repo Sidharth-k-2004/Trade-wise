@@ -32,7 +32,7 @@ public class User {
     private List<UserStock> ownedStocks; 
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<UserStock> wishListedStocks; 
+    private List<StockData> wishListedStocks; 
 
 
     public User(int userId, String username, String email, String password, double availableFunds, LocalDateTime createdAt) {
@@ -103,11 +103,11 @@ public class User {
     public void setOwnedStocks(List<UserStock> ownedStocks) {
         this.ownedStocks = ownedStocks;
     }
-    public List<UserStock> getWishListedStocks() {
+    public List<StockData> getWishListedStocks() {
         return wishListedStocks;
     }
 
-    public void setWishListedStocks(List<UserStock> wishListedStocks) {
+    public void setWishListedStocks(List<StockData> wishListedStocks) {
         this.wishListedStocks = wishListedStocks;
     }
 
@@ -117,17 +117,31 @@ public class User {
     }
 
     // Remove a stock from the user's list
+    // public void removeStock(String symbol) {
+    //     ownedStocks.removeIf(stock -> stock.getSymbol().equals(symbol));
+    // }
+    // public void addWishListedStock(UserStock stock) {
+    //     wishListedStocks.add(stock);
+    // }
+
+    // // Remove a stock from the user's list
+    // public void removeWishListedStock(String symbol) {
+    //     wishListedStocks.removeIf(stock -> stock.getSymbol().equals(symbol));
+    // }
+
     public void removeStock(String symbol) {
         ownedStocks.removeIf(stock -> stock.getSymbol().equals(symbol));
     }
-    public void addWishListedStock(UserStock stock) {
+    
+    public void addWishListedStock(StockData stock) {
         wishListedStocks.add(stock);
     }
-
-    // Remove a stock from the user's list
+    
+    // Remove a stock from the user's wishlist
     public void removeWishListedStock(String symbol) {
         wishListedStocks.removeIf(stock -> stock.getSymbol().equals(symbol));
     }
+    
 
     @Override
     public String toString() {

@@ -2,6 +2,8 @@ package org.vaadin.example;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import com.vaadin.flow.component.button.Button;
@@ -19,6 +21,7 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.VaadinSession;
 
 @Route("login")
 @PageTitle("Login | TradeWise")
@@ -131,6 +134,32 @@ public class LoginView extends VerticalLayout {
             .set("width", "100%")
             .set("padding", "1em");
         
+        // loginButton.addClickListener(e -> {
+        //     String email = emailField.getValue();
+        //     String password = passwordField.getValue();
+
+        //     if (isValidInput(email, password)) {
+        //         Map<String, String> userMap = new HashMap<>();
+        //         userMap.put("email", email);
+        //         userMap.put("password", password);
+
+        //         RestTemplate restTemplate = new RestTemplate();
+        //         try {
+        //             String url = "http://localhost:8080/authenticate";
+        //             Boolean isAuthenticated = restTemplate.postForObject(url, userMap, Boolean.class);
+        //             if (isAuthenticated != null && isAuthenticated) {
+        //                 showNotification("Login successful!", "success-notification");
+        //                 loginButton.getUI().ifPresent(ui -> ui.navigate("dashboard"));
+        //             } else {
+        //                 showNotification("Invalid email or password", "error-notification");
+        //             }
+        //         } catch (Exception ex) {
+        //             showNotification("Login failed. Try again.", "error-notification");
+        //         }
+        //     } else {
+        //         showNotification("Please enter a valid email and password", "error-notification");
+        //     }
+        // });
         loginButton.addClickListener(e -> {
             String email = emailField.getValue();
             String password = passwordField.getValue();
@@ -143,8 +172,14 @@ public class LoginView extends VerticalLayout {
                 RestTemplate restTemplate = new RestTemplate();
                 try {
                     String url = "http://localhost:8080/authenticate";
-                    Boolean isAuthenticated = restTemplate.postForObject(url, userMap, Boolean.class);
-                    if (isAuthenticated != null && isAuthenticated) {
+                    ResponseEntity<Map> response = restTemplate.postForEntity(url, userMap, Map.class);
+                    System.out.println(response);
+                    Map<String, Object> responseBody = response.getBody();
+
+                    if (responseBody != null && responseBody.containsKey("userId") && responseBody.get("status").equals("success")) {
+                        // Store userId in VaadinSession
+                        VaadinSession.getCurrent().setAttribute("userId", responseBody.get("userId"));
+
                         showNotification("Login successful!", "success-notification");
                         loginButton.getUI().ifPresent(ui -> ui.navigate("dashboard"));
                     } else {
@@ -157,6 +192,7 @@ public class LoginView extends VerticalLayout {
                 showNotification("Please enter a valid email and password", "error-notification");
             }
         });
+
 
         Div signupPrompt = new Div();
         signupPrompt.getStyle().set("margin-top", "2em");

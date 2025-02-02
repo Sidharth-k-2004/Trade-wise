@@ -21,12 +21,16 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.VaadinSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.RestTemplate;
 import org.vaadin.example.service.WatchlistService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Route("wishlist")
 @PageTitle("Add to Wishlist | TradeWise")
@@ -34,6 +38,8 @@ public class WishlistView extends AppLayout {
     private Grid<Stock> grid;
     private List<Stock> selectedStocks = new ArrayList<>();
     private final WatchlistService watchlistService;
+    public List<Stock> WatchlistArray= new ArrayList<>();
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Autowired
     public WishlistView(WatchlistService watchlistService) {
@@ -166,9 +172,26 @@ public class WishlistView extends AppLayout {
         addToWishlistButton.setIcon(new Icon(VaadinIcon.PLUS));
         addToWishlistButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addToWishlistButton.addClickListener(e -> {
+            
+            Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
+            if (userId == -1) {
+                Notification.show("User is not logged in.");
+                return;
+            }
             if (!selectedStocks.isEmpty()) {
                 for (Stock stock : selectedStocks) {
                     watchlistService.addToWatchlist(stock);
+                    WatchlistArray.add(stock);   
+                }
+                String url = "http://localhost:8080/addToWishlist";
+                Map<String, Object> request = new HashMap<>();
+                request.put("userId", userId);
+                request.put("stocks", WatchlistArray);
+                try {
+                    restTemplate.postForObject(url, request, String.class);
+                    Notification.show("Added " + selectedStocks.size() + " stocks to watchlist");
+                } catch (Exception ex) {
+                    Notification.show("Error adding to wishlist: " + ex.getMessage());
                 }
                 Notification.show("Added " + selectedStocks.size() + " stocks to watchlist");
                 selectedStocks.clear();
@@ -176,7 +199,10 @@ public class WishlistView extends AppLayout {
             } else {
                 Notification.show("Please select stocks to add to wishlist");
             }
+
+            
         });
+        
         
         loadStocks();
         

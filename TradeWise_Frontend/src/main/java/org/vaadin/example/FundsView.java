@@ -1,9 +1,16 @@
 package org.vaadin.example;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.json.JSONObject;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+import org.vaadin.example.model.StockData;
 
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -32,6 +39,10 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.VaadinSession;
+
+import io.netty.handler.codec.http.HttpMethod;
+
 import com.vaadin.flow.component.notification.Notification;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -46,7 +57,7 @@ import org.json.JSONObject;
 @Route("funds")
 @PageTitle("Funds | TradeWise")
 public class FundsView extends AppLayout {
-    
+    private RestTemplate restTemplate = new RestTemplate();
 
     public FundsView() {
         createHeader();
@@ -179,21 +190,54 @@ public class FundsView extends AppLayout {
             return layout;
         })).setAutoWidth(true);
 
-        grid.setItems(createDummyStocks());
+        grid.setItems(getWishlistStocks());
         grid.addClassName("watchlist-table");
 
         return grid;
     }
+//     public List<Stock> getWishlistStocks() {
+//     Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
 
-    private List<Stock> createDummyStocks() {
-        List<Stock> stocks = new ArrayList<>();
-        stocks.add(new Stock("AAPL", 150.25, 1.5));
-        stocks.add(new Stock("GOOGL", 2750.10, -0.5));
-        stocks.add(new Stock("MSFT", 305.75, 0.8));
-        stocks.add(new Stock("AMZN", 3300.50, -1.2));
-        stocks.add(new Stock("TSLA", 750.80, 2.3));
-        return stocks;
+//     if (userId == null || userId == -1) {
+//         Notification.show("User is not logged in.");
+//         return Collections.emptyList();  // Return an empty list instead of null
+//     }
+
+//     String url = "http://localhost:8080/wishlist/" + userId;
+
+    
+//         List<StockData> stocks = restTemplate.exchange(url, HttpMethod.GET, null, new ParameterizedTypeReference<List<Stock>>() {}
+//         return stocks;
+
+// }
+public List<Stock> getWishlistStocks() {
+    Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
+
+    if (userId == null || userId == -1) {
+        Notification.show("User is not logged in.");
+        return Collections.emptyList();
     }
+
+    String url = "http://localhost:8080/wishlist/" + userId;
+
+    // Fetch the data and map it to an array
+    Stock[] stockArray = restTemplate.getForObject(url, Stock[].class);
+
+    // Convert array to list and return
+    return stockArray != null ? Arrays.asList(stockArray) : Collections.emptyList();
+}
+
+
+
+    // private List<Stock> createDummyStocks() {
+    //     List<Stock> stocks = new ArrayList<>();
+    //     stocks.add(new Stock("AAPL", 150.25, 1.5));
+    //     stocks.add(new Stock("GOOGL", 2750.10, -0.5));
+    //     stocks.add(new Stock("MSFT", 305.75, 0.8));
+    //     stocks.add(new Stock("AMZN", 3300.50, -1.2));
+    //     stocks.add(new Stock("TSLA", 750.80, 2.3));
+    //     return stocks;
+    // }
 
     private void showTradeDialog(Stock stock, boolean isBuy) {
         Dialog dialog = new Dialog();
@@ -533,10 +577,17 @@ public class FundsView extends AppLayout {
     }
 
     private int getCurrentUserId() {
-        // Implement this method to return the current user's ID
-        // This could be stored in the session or retrieved from a service
-        return 1; // Placeholder return value
+    Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
+
+    if (userId != null) {
+        System.out.println("User ID: " + userId); 
+        return userId; 
+    } else {
+        System.out.println("User is not logged in.");
+        return -1; // Return -1 to indicate no user is logged in
     }
+}
+
     private void updateWelcomeMessage(String userName) {
         H2 welcomeText = (H2) getContent().getChildren()
                 .filter(component -> component instanceof H2)

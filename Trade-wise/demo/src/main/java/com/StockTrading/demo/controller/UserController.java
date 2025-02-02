@@ -1,6 +1,7 @@
 package com.StockTrading.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.*;
 
+import com.StockTrading.demo.model.StockData;
 import com.StockTrading.demo.model.User;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -45,12 +47,28 @@ public class UserController {
         System.out.println(user);
         userService.addUser(user);
     }
+    // @PostMapping("/authenticate")
+    // public boolean Auth(@RequestBody Map<String, Object> request) {
+    //     String email = (String) request.get("email");
+    //     String pass=(String) request.get("password");
+    //     boolean res=userService.isValidUser(email,pass);
+    //     return res;
+    // }
+
     @PostMapping("/authenticate")
-    public boolean Auth(@RequestBody Map<String, Object> request) {
-        String email = (String) request.get("email");
-        String pass=(String) request.get("password");
-        boolean res=userService.isValidUser(email,pass);
-        return res;
+    public ResponseEntity<Map<String, Object>> authenticate(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String password = request.get("password");
+
+        // Call the service to authenticate the user
+        Map<String, Object> response = userService.authenticateUser(email, password);
+        
+        if (response != null && response.containsKey("userId")) {
+            System.out.println(response);
+            return ResponseEntity.ok(response);  // Return successful authentication response
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);  // Return error response
+        }
     }
     
     
@@ -163,9 +181,40 @@ public ResponseEntity<String> withDrawFunds(@RequestBody Map<String, Object> req
             return ResponseEntity.ok("Sticks Bought successfully. New balance: " + updatedUser.getAvailableFunds());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
-        }
-        
+        } 
     }
+
+    @PostMapping("/addToWishlist")
+    public ResponseEntity<String> addToWishlist(@RequestBody Map<String, Object> request) {
+        try {
+            // Extract userId
+            Integer userId = (Integer) request.get("userId");
+
+            // Extract wishlist stocks
+            List<Map<String, Object>> stockList = (List<Map<String, Object>>) request.get("stocks");
+
+            // Add stocks to wishlist for the user
+            userService.addStocksToWishlist(userId, stockList);
+
+            return ResponseEntity.ok("Wishlist updated successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error adding to wishlist: " + e.getMessage());
+        }
+    }
+
+     
+    @GetMapping("/wishlist/{userId}")
+    public List<StockData>getWishlist(@PathVariable Integer userId) {
+        List<StockData> wishlist = userService.getWishlistedStocks(userId);
+        
+        if (!wishlist.isEmpty()) {
+            return wishlist;
+        } else {
+            return wishlist;
+        }
+    }
+
+    
 
     
 

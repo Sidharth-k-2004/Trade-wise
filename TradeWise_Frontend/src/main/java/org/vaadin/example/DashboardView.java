@@ -9,6 +9,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -21,7 +22,14 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.VaadinSession;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.client.RestTemplate;
 import org.vaadin.example.service.WatchlistService;
 
 
@@ -30,6 +38,7 @@ import org.vaadin.example.service.WatchlistService;
 public class DashboardView extends AppLayout {
 
     private final WatchlistService watchlistService;
+     private RestTemplate restTemplate = new RestTemplate();
 
     @Autowired
     public DashboardView(WatchlistService watchlistService) {
@@ -153,12 +162,27 @@ public class DashboardView extends AppLayout {
             return layout;
         })).setAutoWidth(true);
 
-        grid.setItems(watchlistService.getWatchlist());
+        grid.setItems(getWishlistStocks());
         grid.addClassName("watchlist-table");
 
         return grid;
     }
+    public List<Stock> getWishlistStocks() {
+    Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
 
+    if (userId == null || userId == -1) {
+        Notification.show("User is not logged in.");
+        return Collections.emptyList();
+    }
+
+    String url = "http://localhost:8080/wishlist/" + userId;
+
+    // Fetch the data and map it to an array
+    Stock[] stockArray = restTemplate.getForObject(url, Stock[].class);
+
+    // Convert array to list and return
+    return stockArray != null ? Arrays.asList(stockArray) : Collections.emptyList();
+}
     private void showTradeDialog(Stock stock, boolean isBuy) {
         Dialog dialog = new Dialog();
         dialog.setWidth("700px");

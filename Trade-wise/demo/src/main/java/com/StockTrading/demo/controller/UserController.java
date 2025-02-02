@@ -228,13 +228,13 @@ public ResponseEntity<String> withDrawFunds(@RequestBody Map<String, Object> req
 
             // Extract wishlist stocks
             List<Map<String, Object>> stockList = (List<Map<String, Object>>) request.get("stocks");
-
+            System.out.println(stockList.get(0).toString());
             // Add stocks to wishlist for the user
             userService.addStocksToOwnedStock(userId, stockList);
 
-            return ResponseEntity.ok("Wishlist updated successfully!");
+            return ResponseEntity.ok("owned updated successfully!");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error adding to wishlist: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error adding to ownedStock: " + e.getMessage());
         }
     }
 

@@ -174,6 +174,13 @@ public class UserService {
         
         return userOptional.map(User::getWishListedStocks).orElse(List.of()); // Return wishlist or empty list
     }
+    public List<UserStock> getownedUserStocks(Integer userId) {
+        Optional<User> userOptional = userRepo.findById(userId);
+        
+        return userOptional.map(User::getOwnedStocks).orElse(List.of()); // Return wishlist or empty list
+    }
+
+
     
     
     

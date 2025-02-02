@@ -1,63 +1,3 @@
-// package com.StockTrading.demo.model;
-
-// import org.springframework.stereotype.Component;
-
-// import jakarta.persistence.Entity;
-// import jakarta.persistence.Id;
-// import jakarta.persistence.Table;
-
-// @Component
-// @Entity
-// @Table
-// public class UserStock {
-//     @Id
-//     private String symbol;
-//     private int quantityOwned;
-//     private String purchaseDate; 
-
-//     public UserStock(String symbol, int quantityOwned, String purchaseDate) {
-//         this.symbol = symbol;
-//         this.quantityOwned = quantityOwned;
-//         this.purchaseDate = purchaseDate;
-//     }
-
-//     // Getters and Setters
-//     public String getSymbol() {
-//         return symbol;
-//     }
-
-//     public void setSymbol(String symbol) {
-//         this.symbol = symbol;
-//     }
-
-//     public int getQuantityOwned() {
-//         return quantityOwned;
-//     }
-
-//     public void setQuantityOwned(int quantityOwned) {
-//         this.quantityOwned = quantityOwned;
-//     }
-
-//     public String getPurchaseDate() {
-//         return purchaseDate;
-//     }
-
-//     public void setPurchaseDate(String purchaseDate) {
-//         this.purchaseDate = purchaseDate;
-//     }
-
-//     @Override
-//     public String toString() {
-//         return "UserStock{" +
-//                 "symbol='" + symbol + '\'' +
-//                 ", quantityOwned=" + quantityOwned +
-//                 ", purchaseDate='" + purchaseDate + '\'' +
-//                 '}';
-//     }
-// }
-
-
-
 
 package com.StockTrading.demo.model;
 
@@ -77,6 +17,9 @@ public class UserStock {
     @Column(name = "quantity_owned", nullable = false)
     private int quantityOwned;
 
+    @Column(name = "purchase_price")
+    private Double purchasePrice;
+
     @Column(name = "purchase_date")
     private LocalDate purchaseDate;
 
@@ -85,10 +28,11 @@ public class UserStock {
     }
 
     // Parameterized constructor
-    public UserStock(String symbol, int quantityOwned, LocalDate purchaseDate) {
+    public UserStock(String symbol, int quantityOwned,Double purchase_price, LocalDate purchaseDate) {
         this.symbol = symbol;
         this.quantityOwned = quantityOwned;
         this.purchaseDate = purchaseDate;
+        this.purchasePrice=purchase_price;
     }
 
     // Getters and Setters
@@ -115,12 +59,20 @@ public class UserStock {
     public void setPurchaseDate(LocalDate purchaseDate) {
         this.purchaseDate = purchaseDate;
     }
+    public Double getPurchasePrice() {
+        return purchasePrice;
+    }
+
+    public void setPurchasePrice(Double purchasePrice) {
+        this.purchasePrice = purchasePrice;
+    }
 
     @Override
     public String toString() {
         return "UserStock{" +
                 "symbol='" + symbol + '\'' +
                 ", quantityOwned=" + quantityOwned +
+                ", purchasePrice=" + purchasePrice +
                 ", purchaseDate=" + purchaseDate +
                 '}';
     }

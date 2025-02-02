@@ -7,6 +7,10 @@ import com.StockTrading.demo.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.StockTrading.demo.model.UserStock;
+
+import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -168,6 +172,29 @@ public class UserService {
             throw new IllegalArgumentException("User not found with ID: " + userId);
         }
     }
+    public void addStocksToOwnedStock(Integer userId, List<Map<String, Object>> stockList) {
+        Optional<User> userOptional = userRepo.findById(userId);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+    
+            // Convert Map to StockData objects and add to wishlist
+            for (Map<String, Object> userStock : stockList) {
+                UserStock stock = new UserStock();
+                stock.setSymbol((String) userStock.get("symbol"));
+                stock.setQuantityOwned(((Number) userStock.get("quantity")).intValue());  // Fix casting
+                // Fix purchase price type casting
+                stock.setPurchasePrice(((Number) userStock.get("price")).doubleValue()); 
+                stock.setPurchaseDate(LocalDate.now()); 
+                user.addStock(stock);
+            }
+    
+            // Save updated user with wishlist
+            userRepo.save(user);
+        } else {
+            throw new IllegalArgumentException("User not found with ID: " + userId);
+        }
+    }
+    
 
     public List<StockData> getWishlistedStocks(Integer userId) {
         Optional<User> userOptional = userRepo.findById(userId);

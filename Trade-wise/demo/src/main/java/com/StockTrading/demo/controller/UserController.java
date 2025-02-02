@@ -214,10 +214,29 @@ public ResponseEntity<String> withDrawFunds(@RequestBody Map<String, Object> req
         }
     }
 
-    
+    @GetMapping("/addstock/{userId}")
+    public List<UserStock>getownedUserStocks(@PathVariable Integer userId) {
+        List<UserStock> ownedStocks = userService.getownedUserStocks(userId);
+            return ownedStocks;
+        
+    }
+    @PostMapping("/addToOwnedStock")
+    public ResponseEntity<String> addToOwnedStock(@RequestBody Map<String, Object> request) {
+        try {
+            // Extract userId
+            Integer userId = (Integer) request.get("userId");
 
-    
+            // Extract wishlist stocks
+            List<Map<String, Object>> stockList = (List<Map<String, Object>>) request.get("stocks");
 
+            // Add stocks to wishlist for the user
+            userService.addStocksToOwnedStock(userId, stockList);
+
+            return ResponseEntity.ok("Wishlist updated successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error adding to wishlist: " + e.getMessage());
+        }
+    }
 
     
 }

@@ -94,25 +94,56 @@ public class DashboardView extends AppLayout {
         addToNavbar(header);
     }
 
+    // private void createDrawer() {
+    //     TextField searchField = new TextField();
+    //     searchField.setPlaceholder("Search your stocks");
+    //     searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+    //     searchField.addClassName("search-field");
+
+    //     VerticalLayout watchlist = new VerticalLayout();
+    //     watchlist.addClassName("watchlist");
+    //     watchlist.add(new H3("Watchlist"));
+
+    //     watchlist.add(createWatchlistTable());
+
+    //     Div chartPlaceholder = new Div();
+    //     chartPlaceholder.addClassName("chart-placeholder");
+    //     chartPlaceholder.setText("Chart will be displayed here");
+
+    //     addToDrawer(new VerticalLayout(searchField, watchlist, chartPlaceholder));
+    // }
+
+
     private void createDrawer() {
         TextField searchField = new TextField();
         searchField.setPlaceholder("Search your stocks");
         searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
         searchField.addClassName("search-field");
-
+    
         VerticalLayout watchlist = new VerticalLayout();
         watchlist.addClassName("watchlist");
         watchlist.add(new H3("Watchlist"));
-
+    
         watchlist.add(createWatchlistTable());
-
-        Div chartPlaceholder = new Div();
-        chartPlaceholder.addClassName("chart-placeholder");
-        chartPlaceholder.setText("Chart will be displayed here");
-
-        addToDrawer(new VerticalLayout(searchField, watchlist, chartPlaceholder));
+    
+        // Create portfolio items with actual investment amounts
+        List<PortfolioItem> portfolioItems = Arrays.asList(
+            new PortfolioItem("INFY", 25000.0, "#FFB6C1"),
+            new PortfolioItem("ONGC", 20000.0, "#ADD8E6"),
+            new PortfolioItem("TCS", 18000.0, "#FFE4B5"),
+            new PortfolioItem("KPITTECH", 5400.0, "#98FB98"),
+            new PortfolioItem("QUICKHEAL", 4800.0, "#DDA0DD"),
+            new PortfolioItem("WIPRO", 8700.0, "#F4A460"),
+            new PortfolioItem("M&M", 6200.0, "#90EE90"),
+            new PortfolioItem("RELIANCE", 7400.0, "#B0C4DE"),
+            new PortfolioItem("HCL", 3500.0, "#D8BFD8")
+        );
+    
+        PortfolioDonutChart donutChart = new PortfolioDonutChart(portfolioItems);
+        
+        addToDrawer(new VerticalLayout(searchField, watchlist, donutChart));
     }
-
+    
     private Grid<Stock> createWatchlistTable() {
         Grid<Stock> grid = new Grid<>(Stock.class, false);
         grid.setAllRowsVisible(true);

@@ -24,11 +24,11 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
+import java.util.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.vaadin.example.service.WatchlistService;
 
@@ -115,33 +115,59 @@ public class DashboardView extends AppLayout {
 
 
     private void createDrawer() {
-        TextField searchField = new TextField();
-        searchField.setPlaceholder("Search your stocks");
-        searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
-        searchField.addClassName("search-field");
-    
-        VerticalLayout watchlist = new VerticalLayout();
-        watchlist.addClassName("watchlist");
-        watchlist.add(new H3("Watchlist"));
-    
-        watchlist.add(createWatchlistTable());
-    
-        // Create portfolio items with actual investment amounts
-        List<PortfolioItem> portfolioItems = Arrays.asList(
-            new PortfolioItem("INFY", 25000.0, "#FFB6C1"),
-            new PortfolioItem("ONGC", 20000.0, "#ADD8E6"),
-            new PortfolioItem("TCS", 18000.0, "#FFE4B5"),
-            new PortfolioItem("KPITTECH", 5400.0, "#98FB98"),
-            new PortfolioItem("QUICKHEAL", 4800.0, "#DDA0DD"),
-            new PortfolioItem("WIPRO", 8700.0, "#F4A460"),
-            new PortfolioItem("M&M", 6200.0, "#90EE90"),
-            new PortfolioItem("RELIANCE", 7400.0, "#B0C4DE"),
-            new PortfolioItem("HCL", 3500.0, "#D8BFD8")
-        );
-    
-        PortfolioDonutChart donutChart = new PortfolioDonutChart(portfolioItems);
-        
-        addToDrawer(new VerticalLayout(searchField, watchlist, donutChart));
+    TextField searchField = new TextField();
+    searchField.setPlaceholder("Search your stocks");
+    searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+    searchField.addClassName("search-field");
+
+    VerticalLayout watchlist = new VerticalLayout();
+    watchlist.addClassName("watchlist");
+    watchlist.add(new H3("Watchlist"));
+
+    watchlist.add(createWatchlistTable());
+
+    VerticalLayout drawer = new VerticalLayout();
+    drawer.addClassName("drawer");
+
+    Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
+    if (userId != null) {
+        try {
+            List<Map<String, Object>> stocks = fetchStocksFromApi(userId);
+            if (!stocks.isEmpty()) {
+                PortfolioDonutChart donutChart = new PortfolioDonutChart(stocks);
+                drawer.add(searchField, watchlist, donutChart);
+            } else {
+                Notification.show("No stocks found in portfolio");
+                drawer.add(searchField, watchlist);
+            }
+        } catch (Exception e) {
+            Notification.show("Error loading portfolio data");
+            drawer.add(searchField, watchlist);
+        }
+    } else {
+        Notification.show("User not logged in");
+        drawer.add(searchField, watchlist);
+    }
+
+    addToDrawer(drawer);
+}
+
+
+
+    private List<Map<String, Object>> fetchStocksFromApi(Integer userId) {
+        String url = "http://localhost:8080/wishlist/" + userId;
+        try {
+            ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Map<String, Object>>>() {}
+            );
+            return response.getBody();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
     }
     
     private Grid<Stock> createWatchlistTable() {

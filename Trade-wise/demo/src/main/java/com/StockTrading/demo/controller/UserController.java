@@ -169,20 +169,20 @@ public ResponseEntity<String> withDrawFunds(@RequestBody Map<String, Object> req
     //     }
     // }
 
-    @PutMapping("/stocks")
-    public ResponseEntity<String> buyStocks(@RequestBody  Map<String, Object> request) {
-        try {
-            System.out.println("Buy stocks");
-            int userId = (int) request.get("userId");
-            String StockSymbol = (String) request.get("symbol");
-            int quantity=(int) request.get("quantity");
+    // @PutMapping("/stocks")
+    // public ResponseEntity<String> buyStocks(@RequestBody  Map<String, Object> request) {
+    //     try {
+    //         System.out.println("Buy stocks");
+    //         int userId = (int) request.get("userId");
+    //         String StockSymbol = (String) request.get("symbol");
+    //         int quantity=(int) request.get("quantity");
 
-            User updatedUser = stockService.buyStocks(userId,StockSymbol,quantity);
-            return ResponseEntity.ok("Sticks Bought successfully. New balance: " + updatedUser.getAvailableFunds());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } 
-    }
+    //         User updatedUser = stockService.buyStocks(userId,StockSymbol,quantity);
+    //         return ResponseEntity.ok("Sticks Bought successfully. New balance: " + updatedUser.getAvailableFunds());
+    //     } catch (IllegalArgumentException e) {
+    //         return ResponseEntity.badRequest().body(e.getMessage());
+    //     } 
+    // }
 
     @PostMapping("/addToWishlist")
     public ResponseEntity<String> addToWishlist(@RequestBody Map<String, Object> request) {
@@ -237,6 +237,26 @@ public ResponseEntity<String> withDrawFunds(@RequestBody Map<String, Object> req
             return ResponseEntity.badRequest().body("Error adding to ownedStock: " + e.getMessage());
         }
     }
+
+
+@GetMapping("/equity")
+public Double calEquity(@RequestParam Integer userId) {
+    return stockService.calculateEquity(userId);
+}
+
+@PostMapping("/sellStock")
+public ResponseEntity<String> sellStock(@RequestBody Map<String, Object> request) {
+    try {
+        Integer userId = (Integer) request.get("userId");
+        String symbol = (String) request.get("symbol");
+        int quantity = ((Number) request.get("quantity")).intValue();
+
+        stockService.sellStock(userId, symbol, quantity);
+        return ResponseEntity.ok("Stock sold successfully!");
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body("Error selling stock: " + e.getMessage());
+    }
+}
 
     
 }

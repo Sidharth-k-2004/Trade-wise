@@ -113,41 +113,41 @@ public class StockService {
     // }
 
     // Buy stocks and update user's portfolio
-    public User buyStocks(int userId, String symbol, int quantity) {
-        // Fetch user
-        Optional<User> optionalUser = userRepo.findById(userId);
-        if (optionalUser.isEmpty()) {
-            throw new IllegalArgumentException("User not found with ID: " + userId);
-        }
-        User user = optionalUser.get();
+    // public User buyStocks(int userId, String symbol, int quantity) {
+    //     // Fetch user
+    //     Optional<User> optionalUser = userRepo.findById(userId);
+    //     if (optionalUser.isEmpty()) {
+    //         throw new IllegalArgumentException("User not found with ID: " + userId);
+    //     }
+    //     User user = optionalUser.get();
 
-        // Fetch stock data
-        StockData stockData = fetchStockData(symbol);
-        System.out.println(stockData);
-        if (stockData == null) {
-            throw new IllegalArgumentException("Stock data not found for symbol: " + symbol);
-        }
-        double stockPrice;
-        try {
-            stockPrice = Double.parseDouble(stockData.getPrice());
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid stock price received from API");
-        }
+    //     // Fetch stock data
+    //     StockData stockData = fetchStockData(symbol);
+    //     System.out.println(stockData);
+    //     if (stockData == null) {
+    //         throw new IllegalArgumentException("Stock data not found for symbol: " + symbol);
+    //     }
+    //     double stockPrice;
+    //     try {
+    //         stockPrice = Double.parseDouble(stockData.getPrice());
+    //     } catch (NumberFormatException e) {
+    //         throw new IllegalArgumentException("Invalid stock price received from API");
+    //     }
 
-        double totalCost = stockPrice * quantity;
+    //     double totalCost = stockPrice * quantity;
 
-        if (user.getAvailableFunds() < totalCost) {
-            throw new IllegalArgumentException("Insufficient funds to buy " + quantity + " shares of " + symbol);
-        }
+    //     if (user.getAvailableFunds() < totalCost) {
+    //         throw new IllegalArgumentException("Insufficient funds to buy " + quantity + " shares of " + symbol);
+    //     }
 
-        user.setAvailableFunds(user.getAvailableFunds() - totalCost);
+    //     user.setAvailableFunds(user.getAvailableFunds() - totalCost);
 
-        LocalDate currentDate = LocalDate.now();
-        UserStock stock = new UserStock(symbol, quantity, currentDate);
-        user.addStock(stock);
+    //     LocalDate currentDate = LocalDate.now();
+    //     UserStock stock = new UserStock(symbol, quantity, currentDate);
+    //     user.addStock(stock);
 
-        return userRepo.save(user);
-    }
+    //     return userRepo.save(user);
+    // }
     public User sellStocks(int userId, String symbol, int quantity) {
         // Fetch user
         Optional<User> optionalUser = userRepo.findById(userId);
@@ -230,5 +230,75 @@ public class StockService {
         return (percentValue > 0 ? "+" : "") + String.format("%.2f", percentValue) + "%";
     }
 
+
+    public void sellStock(Integer userId, String symbol, int quantity) {
+        Optional<User> userOptional = userRepo.findById(userId);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            List<UserStock> ownedStocks = user.getOwnedStocks();
+            UserStock stockToSell = null;
+    
+            for (UserStock stock : ownedStocks) {
+                if (stock.getSymbol().equalsIgnoreCase(symbol) && stock.getQuantityOwned() >= quantity) {
+                    stockToSell = stock;
+                    break;
+                }
+            }
+    
+            if (stockToSell == null) {
+                throw new IllegalArgumentException("Stock not found or insufficient quantity to sell.");
+            }
+    
+            // Fetch the current stock price
+            StockData stockData = fetchStockData(symbol);
+            if (stockData == null) {
+                throw new IllegalArgumentException("Unable to fetch current stock price.");
+            }
+    
+            double currentPrice = Double.parseDouble(stockData.getPrice());
+            double totalSaleValue = currentPrice * quantity;
+    
+            // Deduct quantity or remove stock if all shares are sold
+            if (stockToSell.getQuantityOwned() == quantity) {
+                ownedStocks.remove(stockToSell);
+            } else {
+                stockToSell.setQuantityOwned(stockToSell.getQuantityOwned() - quantity);
+            }
+    
+            // Add sale value to user's available funds
+            user.setAvailableFunds(user.getAvailableFunds() + totalSaleValue);
+    
+            userRepo.save(user);
+        } else {
+            throw new IllegalArgumentException("User not found with ID: " + userId);
+        }
+    }
+
+
+    public double calculateEquity(int userId) {
+        Optional<User> userOptional = userRepo.findById(userId);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            List<UserStock> ownedStocks = user.getOwnedStocks();
+            double totalEquity = 0.0;
+    
+            for (UserStock stock : ownedStocks) {
+                StockData stockData = fetchStockData(stock.getSymbol());
+                if (stockData != null) {
+                    try {
+                        double currentPrice = Double.parseDouble(stockData.getPrice()); // Convert to double
+                        totalEquity += stock.getQuantityOwned() * currentPrice;
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid price format for stock: " + stock.getSymbol());
+                    }
+                }
+            }
+    
+            return totalEquity;
+        } else {
+            throw new IllegalArgumentException("User not found with ID: " + userId);
+        }
+    }
+    
 }
 

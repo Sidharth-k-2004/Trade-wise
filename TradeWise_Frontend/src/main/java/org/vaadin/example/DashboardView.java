@@ -1,5 +1,6 @@
  package org.vaadin.example;
 
+import com.nimbusds.jose.shaded.gson.JsonObject;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
@@ -24,6 +25,10 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.*;
 import org.springframework.http.HttpMethod;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,63 +99,7 @@ public class DashboardView extends AppLayout {
         addToNavbar(header);
     }
 
-    // private void createDrawer() {
-    //     TextField searchField = new TextField();
-    //     searchField.setPlaceholder("Search your stocks");
-    //     searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
-    //     searchField.addClassName("search-field");
 
-    //     VerticalLayout watchlist = new VerticalLayout();
-    //     watchlist.addClassName("watchlist");
-    //     watchlist.add(new H3("Watchlist"));
-
-    //     watchlist.add(createWatchlistTable());
-
-    //     Div chartPlaceholder = new Div();
-    //     chartPlaceholder.addClassName("chart-placeholder");
-    //     chartPlaceholder.setText("Chart will be displayed here");
-
-    //     addToDrawer(new VerticalLayout(searchField, watchlist, chartPlaceholder));
-    // }
-
-
-//     private void createDrawer() {
-//     TextField searchField = new TextField();
-//     searchField.setPlaceholder("Search your stocks");
-//     searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
-//     searchField.addClassName("search-field");
-
-//     VerticalLayout watchlist = new VerticalLayout();
-//     watchlist.addClassName("watchlist");
-//     watchlist.add(new H3("Watchlist"));
-
-//     watchlist.add(createWatchlistTable());
-
-//     VerticalLayout drawer = new VerticalLayout();
-//     drawer.addClassName("drawer");
-
-//     Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
-//     if (userId != null) {
-//         try {
-//             List<Map<String, Object>> stocks = fetchStocksFromApi(userId);
-//             if (!stocks.isEmpty()) {
-//                 PortfolioDonutChart donutChart = new PortfolioDonutChart(stocks);
-//                 drawer.add(searchField, watchlist, donutChart);
-//             } else {
-//                 Notification.show("No stocks found in portfolio");
-//                 drawer.add(searchField, watchlist);
-//             }
-//         } catch (Exception e) {
-//             Notification.show("Error loading portfolio data");
-//             drawer.add(searchField, watchlist);
-//         }
-//     } else {
-//         Notification.show("User not logged in");
-//         drawer.add(searchField, watchlist);
-//     }
-
-//     addToDrawer(drawer);
-// }
 
 private void createDrawer() {
     TextField searchField = new TextField();
@@ -273,93 +222,6 @@ private void createDrawer() {
     // Convert array to list and return
     return stockArray != null ? Arrays.asList(stockArray) : Collections.emptyList();
 }
-    // private void showTradeDialog(Stock stock, boolean isBuy) {
-    //     Dialog dialog = new Dialog();
-    //     dialog.setWidth("700px");
-        
-    //     // Header
-    //     H2 title = new H2((isBuy ? "BUY " : "SELL ") + stock.getSymbol());
-    //     title.getStyle().set("margin", "0");
-    //     title.getStyle().set("font-size", "24px");
-    //     title.getStyle().set("color", isBuy ? "var(--lumo-success-color)" : "var(--lumo-error-color)");
-        
-    //     // Exchange selection
-    //     RadioButtonGroup<String> exchange = new RadioButtonGroup<>();
-    //     exchange.setItems("BSE", "NSE");
-    //     exchange.setValue("BSE");
-    //     exchange.setThemeName("horizontal");
-        
-    //     // Price labels
-    //     HorizontalLayout priceLayout = new HorizontalLayout();
-    //     Span bsePrice = new Span("₹ " + String.format("%.2f", stock.getPrice()));
-    //     Span nsePrice = new Span("₹ " + String.format("%.2f", stock.getPrice()));
-    //     priceLayout.add(bsePrice, new Span(" | "), nsePrice);
-    //     priceLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        
-    //     // Trade type
-    //     RadioButtonGroup<String> tradeType = new RadioButtonGroup<>();
-    //     tradeType.setItems("Intraday", "Longterm");
-    //     tradeType.setValue("Intraday");
-    //     tradeType.setThemeName("horizontal");
-        
-    //     // Input fields
-    //     TextField quantityField = new TextField("Qty");
-    //     quantityField.setValueChangeMode(ValueChangeMode.EAGER);
-        
-    //     TextField priceField = new TextField("Price");
-    //     priceField.setValueChangeMode(ValueChangeMode.EAGER);
-    //     priceField.setValue(String.format("%.2f", stock.getPrice()));
-        
-    //     TextField triggerField = new TextField("Trigger Price");
-    //     triggerField.setValueChangeMode(ValueChangeMode.EAGER);
-        
-    //     // Fields layout
-    //     HorizontalLayout fieldsLayout = new HorizontalLayout(quantityField, priceField, triggerField);
-    //     fieldsLayout.setWidthFull();
-        
-    //     // Margin required section
-    //     HorizontalLayout marginLayout = new HorizontalLayout();
-    //     Span marginLabel = new Span("Margin required : ");
-    //     Span marginAmount = new Span("₹ " + String.format("%.2f", stock.getPrice()));
-    //     marginLayout.add(marginLabel, marginAmount);
-    //     marginLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-    //     marginLayout.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
-    //     marginLayout.getStyle().set("padding", "10px");
-    //     marginLayout.getStyle().set("border-radius", "4px");
-        
-    //     // Action buttons
-    //     Button actionButton = new Button(isBuy ? "BUY" : "SELL", e -> {
-    //         // Add your trade execution logic here
-    //         dialog.close();
-    //     });
-    //     actionButton.addThemeVariants(isBuy ? ButtonVariant.LUMO_PRIMARY : ButtonVariant.LUMO_ERROR);
-    //     actionButton.setWidthFull();
-        
-    //     Button cancelButton = new Button("CANCEL", e -> dialog.close());
-    //     cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-    //     cancelButton.setWidthFull();
-        
-    //     HorizontalLayout buttons = new HorizontalLayout(actionButton, cancelButton);
-    //     buttons.setWidthFull();
-    //     buttons.setSpacing(true);
-        
-    //     // Layout everything
-    //     VerticalLayout dialogLayout = new VerticalLayout(
-    //         title,
-    //         exchange,
-    //         priceLayout,
-    //         tradeType,
-    //         fieldsLayout,
-    //         marginLayout,
-    //         buttons
-    //     );
-    //     dialogLayout.setPadding(true);
-    //     dialogLayout.setSpacing(true);
-    //     dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
-        
-    //     dialog.add(dialogLayout);
-    //     dialog.open();
-    // }
 
     private void showTradeDialog(Stock stock, boolean isBuy) {
         Dialog dialog = new Dialog();
@@ -386,6 +248,10 @@ private void createDrawer() {
         Button actionButton = new Button(isBuy ? "BUY" : "SELL", e -> {
             if (isBuy) {
                 sendBuyRequest(stock, quantityField.getValue(), priceField.getValue());
+            }
+            
+            else{
+                sendSellRequest(stock.getSymbol(),quantityField.getValue());
             }
             dialog.close();
         });
@@ -414,6 +280,43 @@ private void createDrawer() {
         dialog.add(dialogLayout);
         dialog.open();
     }
+    private void sendSellRequest(String symbol, String quantity) {
+    try {
+        Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
+
+        if (userId == null) {
+            Notification.show("User not authenticated.", 3000, Notification.Position.MIDDLE);
+            return;
+        }
+
+        // Prepare request body
+        String requestBody = String.format(
+            "{\"userId\": %d, \"symbol\": \"%s\", \"quantity\": %d}",
+            userId, symbol, Integer.parseInt(quantity)
+        );
+
+        // Create HTTP client
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:8080/sellStock")) // Update API URL
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+            .build();
+
+        // Send request
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 200) {
+            Notification.show("Stock sold successfully!", 3000, Notification.Position.MIDDLE);
+        } else {
+            Notification.show("Error selling stock: " + response.body(), 3000, Notification.Position.MIDDLE);
+        }
+    } catch (Exception e) {
+        Notification.show("Error processing request: " + e.getMessage(), 3000, Notification.Position.MIDDLE);
+    }
+}
+
+    
 
     private void sendBuyRequest(Stock stock, String quantity, String price) {
         Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
@@ -465,15 +368,35 @@ private void createDrawer() {
         setContent(mainContent);
     }
 
+    // private void createEquitySection(VerticalLayout mainContent) {
+    //     VerticalLayout equitySection = new VerticalLayout();
+    //     equitySection.addClassName("equity-section");
+
+    //     H3 equityTitle = new H3("Equity");
+    //     equityTitle.addClassName("section-title");
+
+    //     Div equityValue = new Div();
+    //     equityValue.setText("₹ --");
+    //     equityValue.addClassName("equity-value");
+
+    //     Div marginInfo = new Div();
+    //     marginInfo.setText("Margin Available");
+    //     marginInfo.addClassName("margin-info");
+
+    //     equitySection.add(equityTitle, equityValue, marginInfo);
+    //     mainContent.add(equitySection);
+    // }
+
     private void createEquitySection(VerticalLayout mainContent) {
         VerticalLayout equitySection = new VerticalLayout();
         equitySection.addClassName("equity-section");
 
         H3 equityTitle = new H3("Equity");
+        
         equityTitle.addClassName("section-title");
 
         Div equityValue = new Div();
-        equityValue.setText("₹ --");
+        equityValue.setText("₹ --");  // Placeholder
         equityValue.addClassName("equity-value");
 
         Div marginInfo = new Div();
@@ -482,7 +405,31 @@ private void createDrawer() {
 
         equitySection.add(equityTitle, equityValue, marginInfo);
         mainContent.add(equitySection);
+
+        // Fetch and update the equity value
+        fetchEquityValue(equityValue);
     }
+
+    private void fetchEquityValue(Div equityValue) {
+            try {
+                RestTemplate restTemplate = new RestTemplate();
+                Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
+                // String apiUrl = "http://localhost:8080/equity"; // Adjust URL as needed
+                // Double equity = restTemplate.getForObject(apiUrl, Double.class);
+                String apiUrl = "http://localhost:8080/equity?userId=" + userId;
+                Double equity = restTemplate.getForObject(apiUrl, Double.class);
+
+
+                // Update UI thread
+                VaadinSession.getCurrent().access(() -> {
+                    equityValue.setText("₹ " + equity);
+                });
+                System.out.println(equity);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
 
     private void createHoldingsSection(VerticalLayout mainContent) {
         VerticalLayout holdingsSection = new VerticalLayout();

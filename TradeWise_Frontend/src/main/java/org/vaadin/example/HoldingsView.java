@@ -39,7 +39,7 @@ import com.vaadin.flow.server.VaadinSession;
 @Route("holdings")
 @PageTitle("Holdings | TradeWise")
 public class HoldingsView extends AppLayout {
-    private final RestTemplate restTemplate = new RestTemplate(); // ✅ Declare it globally in HoldingsView
+    private final RestTemplate restTemplate = new RestTemplate(); 
     // Create a class to represent a holding row
     private static class HoldingItem {
         private String instrument;
@@ -295,26 +295,58 @@ public class HoldingsView extends AppLayout {
         dialog.open();
     }
 
+    // private void createDrawer() {
+    //     // Search field
+    //     TextField searchField = new TextField();
+    //     searchField.setPlaceholder("Search your stocks");
+    //     searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+    //     searchField.addClassName("search-field");
+
+    //     // Watchlist container
+    //     VerticalLayout watchlist = new VerticalLayout();
+    //     watchlist.addClassName("watchlist");
+    //     watchlist.add(new H3("Watchlist"));
+
+    //     watchlist.add(createWatchlistTable());
+    //     // Chart placeholder
+    //     Div chartPlaceholder = new Div();
+    //     chartPlaceholder.addClassName("chart-placeholder");
+    //     chartPlaceholder.setText("Chart will be displayed here");
+
+    //     // Add components to drawer
+    //     addToDrawer(new VerticalLayout(searchField, watchlist, chartPlaceholder));
+    // }
+
     private void createDrawer() {
-        // Search field
         TextField searchField = new TextField();
         searchField.setPlaceholder("Search your stocks");
         searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
         searchField.addClassName("search-field");
-
-        // Watchlist container
+    
         VerticalLayout watchlist = new VerticalLayout();
         watchlist.addClassName("watchlist");
         watchlist.add(new H3("Watchlist"));
-
+    
         watchlist.add(createWatchlistTable());
-        // Chart placeholder
-        Div chartPlaceholder = new Div();
-        chartPlaceholder.addClassName("chart-placeholder");
-        chartPlaceholder.setText("Chart will be displayed here");
-
-        // Add components to drawer
-        addToDrawer(new VerticalLayout(searchField, watchlist, chartPlaceholder));
+    
+        VerticalLayout drawer = new VerticalLayout();
+        drawer.addClassName("drawer");
+    
+        Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
+        if (userId != null) {
+            try {
+                PortfolioDonutChart donutChart = new PortfolioDonutChart(userId); // Pass userId directly
+                drawer.add(searchField, watchlist, donutChart);
+            } catch (Exception e) {
+                Notification.show("Error loading portfolio data: " + e.getMessage());
+                drawer.add(searchField, watchlist);
+            }
+        } else {
+            Notification.show("User not logged in");
+            drawer.add(searchField, watchlist);
+        }
+    
+        addToDrawer(drawer);
     }
 
     private void createMainContent() {

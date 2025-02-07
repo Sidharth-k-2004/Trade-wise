@@ -1,10 +1,13 @@
 package org.vaadin.example;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -40,28 +43,42 @@ import com.vaadin.flow.server.VaadinSession;
 @PageTitle("Holdings | TradeWise")
 public class HoldingsView extends AppLayout {
     private final RestTemplate restTemplate = new RestTemplate(); 
-    // Create a class to represent a holding row
+    
     private static class HoldingItem {
-        private String instrument;
+        private String stock;
         private int quantity;
-        private double avgCost;
-        private double ltp;
-        private double pnl;
-        private double netChange;
-        private double dayChange;
-
+        private double buyPrice;
+        private double currentPrice;
+        private double investment;
+        private double currentValue;
+        private double unrealizedPnL;
+        private LocalDate purchaseDate;
         // Empty constructor for Grid
         public HoldingItem() {}
 
+
+    
         // Getters
-        public String getInstrument() { return instrument; }
+        public String getstock() { return stock; }
         public int getQuantity() { return quantity; }
-        public double getAvgCost() { return avgCost; }
-        public double getLtp() { return ltp; }
-        public double getPnl() { return pnl; }
-        public double getNetChange() { return netChange; }
-        public double getDayChange() { return dayChange; }
+        public double getbuyPrice() { return buyPrice; }
+        public double getcurrentPrice() { return currentPrice; }
+        public double getinvestment() { return investment; }
+        public double getcurrentValue() { return currentValue; }
+        public double getunrealizedPnL() { return unrealizedPnL; }
+        public LocalDate getpurchaseDate(){return purchaseDate;}
+    
+        // Setters (added)
+        public void setstock(String stock) { this.stock = stock; }
+        public void setQuantity(int quantity) { this.quantity = quantity; }
+        public void setbuyPrice(double buyPrice) { this.buyPrice = buyPrice; }
+        public void setcurrentPrice(double currentPrice) { this.currentPrice = currentPrice; }
+        public void setinvestment(double investment) { this.investment = investment; }
+        public void setcurrentValue(double currentValue) { this.currentValue = currentValue; }
+        public void setunrealizedPnL(double unrealizedPnL) { this.unrealizedPnL = unrealizedPnL; }
+        public void setpurchaseDate(LocalDate purchaseDate) { this.purchaseDate = purchaseDate; }
     }
+    
 
     public HoldingsView() {
         createHeader();
@@ -195,17 +212,6 @@ public class HoldingsView extends AppLayout {
     return stockArray != null ? Arrays.asList(stockArray) : Collections.emptyList();
 }
 
-    
-
-    // private List<Stock> createDummyStocks() {
-    //     List<Stock> stocks = new ArrayList<>();
-    //     stocks.add(new Stock("AAPL", 150.25, 1.5));
-    //     stocks.add(new Stock("GOOGL", 2750.10, -0.5));
-    //     stocks.add(new Stock("MSFT", 305.75, 0.8));
-    //     stocks.add(new Stock("AMZN", 3300.50, -1.2));
-    //     stocks.add(new Stock("TSLA", 750.80, 2.3));
-    //     return stocks;
-    // }
 
     private void showTradeDialog(Stock stock, boolean isBuy) {
         Dialog dialog = new Dialog();
@@ -295,27 +301,7 @@ public class HoldingsView extends AppLayout {
         dialog.open();
     }
 
-    // private void createDrawer() {
-    //     // Search field
-    //     TextField searchField = new TextField();
-    //     searchField.setPlaceholder("Search your stocks");
-    //     searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
-    //     searchField.addClassName("search-field");
-
-    //     // Watchlist container
-    //     VerticalLayout watchlist = new VerticalLayout();
-    //     watchlist.addClassName("watchlist");
-    //     watchlist.add(new H3("Watchlist"));
-
-    //     watchlist.add(createWatchlistTable());
-    //     // Chart placeholder
-    //     Div chartPlaceholder = new Div();
-    //     chartPlaceholder.addClassName("chart-placeholder");
-    //     chartPlaceholder.setText("Chart will be displayed here");
-
-    //     // Add components to drawer
-    //     addToDrawer(new VerticalLayout(searchField, watchlist, chartPlaceholder));
-    // }
+   
 
     private void createDrawer() {
         TextField searchField = new TextField();
@@ -354,8 +340,11 @@ public class HoldingsView extends AppLayout {
         VerticalLayout mainContent = new VerticalLayout();
         mainContent.addClassName("main-content");
 
-        // Welcome section
-        H2 welcomeText = new H2("Hi, User!");
+        String userName = (String) VaadinSession.getCurrent().getAttribute("userName");
+        if (userName == null) {
+            userName = "Guest"; // Default value if not found
+        }
+        H2 welcomeText = new H2("Hi, " + userName + " !");
         welcomeText.addClassName("welcome-text");
         mainContent.add(welcomeText);
 
@@ -366,56 +355,66 @@ public class HoldingsView extends AppLayout {
         setContent(mainContent);
     }
 
+
     private void createHoldingsSection(VerticalLayout mainContent) {
-        VerticalLayout holdingsSection = new VerticalLayout();
-        holdingsSection.addClassName("holdings-section");
+    VerticalLayout holdingsSection = new VerticalLayout();
+    holdingsSection.addClassName("holdings-section");
 
-        H3 holdingsTitle = new H3("Holdings");
-        holdingsTitle.addClassName("section-title");
-        holdingsSection.add(holdingsTitle);
+    Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
 
-        // Create holdings grid with the HoldingItem class
-        Grid<HoldingItem> grid = new Grid<>(HoldingItem.class, false);
-        grid.addClassName("holdings-grid");
-
-        // Add columns
-        grid.addColumn(HoldingItem::getInstrument)
-            .setHeader("Instrument")
-            .setAutoWidth(true)
-            .setFlexGrow(1);
-            
-        grid.addColumn(HoldingItem::getQuantity)
-            .setHeader("Qty")
-            .setAutoWidth(true);
-            
-        grid.addColumn(HoldingItem::getAvgCost)
-            .setHeader("Avg cost")
-            .setAutoWidth(true);
-            
-        grid.addColumn(HoldingItem::getLtp)
-            .setHeader("LTP")
-            .setAutoWidth(true);
-            
-        grid.addColumn(HoldingItem::getPnl)
-            .setHeader("P&L")
-            .setAutoWidth(true);
-            
-        grid.addColumn(HoldingItem::getNetChange)
-            .setHeader("Net chg")
-            .setAutoWidth(true);
-            
-        grid.addColumn(HoldingItem::getDayChange)
-            .setHeader("Day chg")
-            .setAutoWidth(true);
-
-        // Style the grid
-        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
-        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
-        grid.setAllRowsVisible(true); // This replaces setHeightByRows
-
-        holdingsSection.add(grid);
-        mainContent.add(holdingsSection);
+    if (userId == null || userId == -1) {
+        return;
     }
+
+    H3 holdingsTitle = new H3("Holdings");
+    holdingsTitle.addClassName("section-title");
+    holdingsSection.add(holdingsTitle);
+
+    // Create holdings grid
+    Grid<HoldingItem> grid = new Grid<>(HoldingItem.class, false);
+    grid.addClassName("holdings-grid");
+
+    // Define columns
+    grid.addColumn(HoldingItem::getstock).setHeader("Stock").setAutoWidth(true);
+    grid.addColumn(HoldingItem::getQuantity).setHeader("Qty").setAutoWidth(true);
+    grid.addColumn(HoldingItem::getbuyPrice).setHeader("Bought Price").setAutoWidth(true);
+    grid.addColumn(HoldingItem::getinvestment) // Total Invested Price
+        .setHeader("Total Invested Price").setAutoWidth(true);
+    grid.addColumn(HoldingItem::getcurrentPrice).setHeader("Current Price").setAutoWidth(true);
+    grid.addColumn(HoldingItem::getcurrentValue) // Total Holding Price
+        .setHeader("Total Holding Price").setAutoWidth(true);
+    grid.addColumn(HoldingItem::getunrealizedPnL).setHeader("P&L").setAutoWidth(true);
+    grid.addColumn(HoldingItem::getpurchaseDate).setHeader("Purchase Date").setAutoWidth(true);
+
+    // Apply grid styles
+    grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
+    grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+    grid.setAllRowsVisible(true);
+
+    // Fetch data and populate grid
+    List<HoldingItem> holdings = fetchHoldings(userId);
+    
+    grid.setItems(holdings);
+
+    holdingsSection.add(grid);
+    mainContent.add(holdingsSection);
+}
+
+/**
+ * Fetches holdings data from the backend for a given user.
+ */
+private List<HoldingItem> fetchHoldings(Integer userId) {
+    String url = "http://localhost:8080/holdings/" + userId;
+
+    RestTemplate restTemplate = new RestTemplate();
+    ResponseEntity<HoldingItem[]> response = restTemplate.getForEntity(url, HoldingItem[].class);
+    if (response.getStatusCode() == HttpStatus.OK) {
+        return Arrays.asList(response.getBody());
+    }
+
+    return new ArrayList<>();
+}
+
 
     private Tab createTab(String text, VaadinIcon icon, String route) {
         Icon tabIcon = icon.create();

@@ -11,6 +11,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.VaadinSession;
 
 public class ProfileMenu extends Dialog {
     
@@ -117,7 +118,13 @@ public class ProfileMenu extends Dialog {
 
     private Button createLogoutMenuItem() {
         Button logoutButton = createMenuItem("Logout", VaadinIcon.SIGN_OUT);
-        logoutButton.getStyle().set("color", "var(--lumo-error-color)");
+        logoutButton.addClickListener(e -> {
+            // Clear session data
+            VaadinSession.getCurrent().getSession().invalidate();
+            
+            // Navigate to login page
+            logoutButton.getUI().ifPresent(ui -> ui.navigate("login"));
+        });
         return logoutButton;
     }
 }

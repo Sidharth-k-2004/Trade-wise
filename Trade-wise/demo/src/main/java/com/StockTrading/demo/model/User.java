@@ -2,6 +2,8 @@ package com.StockTrading.demo.model;
 
 import java.time.LocalDateTime;
 import java.util.*;
+
+import org.hibernate.annotations.ManyToAny;
 import org.springframework.stereotype.Component;
 
 import jakarta.persistence.CascadeType;
@@ -10,6 +12,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import com.StockTrading.demo.model.UserStock;
@@ -28,10 +31,11 @@ public class User {
     private String password;      
     private double availableFunds; 
     private LocalDateTime createdAt;
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserStock> ownedStocks; 
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<StockData> wishListedStocks; 
 
 

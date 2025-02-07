@@ -6,6 +6,8 @@ import com.StockTrading.demo.repository.UserRepo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+
 import com.StockTrading.demo.model.UserStock;
 
 import java.sql.Time;
@@ -239,48 +241,7 @@ public class UserService {
         }
     }
 
-    public void sellStock(Integer userId, String symbol, int quantity) {
-        Optional<User> userOptional = userRepo.findById(userId);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            List<UserStock> ownedStocks = user.getOwnedStocks();
-            UserStock stockToSell = null;
-    
-            for (UserStock stock : ownedStocks) {
-                if (stock.getSymbol().equalsIgnoreCase(symbol) && stock.getQuantityOwned() >= quantity) {
-                    stockToSell = stock;
-                    break;
-                }
-            }
-    
-            if (stockToSell == null) {
-                throw new IllegalArgumentException("Stock not found or insufficient quantity to sell.");
-            }
-    
-            // Fetch the current stock price
-            StockData stockData = fetchStockData(symbol);
-            if (stockData == null) {
-                throw new IllegalArgumentException("Unable to fetch current stock price.");
-            }
-    
-            double currentPrice = Double.parseDouble(stockData.getPrice());
-            double totalSaleValue = currentPrice * quantity;
-    
-            // Deduct quantity or remove stock if all shares are sold
-            if (stockToSell.getQuantityOwned() == quantity) {
-                ownedStocks.remove(stockToSell);
-            } else {
-                stockToSell.setQuantityOwned(stockToSell.getQuantityOwned() - quantity);
-            }
-    
-            // Add sale value to user's available funds
-            user.setAvailableFunds(user.getAvailableFunds() + totalSaleValue);
-    
-            userRepo.save(user);
-        } else {
-            throw new IllegalArgumentException("User not found with ID: " + userId);
-        }
-    }
+
     
     
     
@@ -295,6 +256,9 @@ public class UserService {
         
         return userOptional.map(User::getOwnedStocks).orElse(List.of()); // Return wishlist or empty list
     }
+
+
+   
 
 
     

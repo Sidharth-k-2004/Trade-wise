@@ -258,6 +258,17 @@ public ResponseEntity<String> sellStock(@RequestBody Map<String, Object> request
     }
 }
 
+@GetMapping("/holdings/{userId}")
+public List<HashMap<String, Object>> getHoldings(@PathVariable int userId) {
+    return stockService.getHoldings(userId);
+}
+
+@GetMapping("/stocks/{symbol}")
+public StockData getstock(@PathVariable String symbol) {
+    symbol = symbol.toUpperCase();
+    return stockService.searchStock(symbol);
+    
+}
     
 }
 

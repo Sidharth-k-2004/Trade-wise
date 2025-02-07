@@ -117,6 +117,7 @@ private void createDrawer() {
     drawer.addClassName("drawer");
 
     Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
+    String userName=(String) VaadinSession.getCurrent().getAttribute("userName");
     if (userId != null) {
         try {
             PortfolioDonutChart donutChart = new PortfolioDonutChart(userId); // Pass userId directly
@@ -357,8 +358,12 @@ private void createDrawer() {
     private void createMainContent() {
         VerticalLayout mainContent = new VerticalLayout();
         mainContent.addClassName("main-content");
+        String userName = (String) VaadinSession.getCurrent().getAttribute("userName");
+        if (userName == null) {
+            userName = "Guest"; // Default value if not found
+        }
+        H2 welcomeText = new H2("Hi, " + userName + " !");
 
-        H2 welcomeText = new H2("Hi, User!");
         welcomeText.addClassName("welcome-text");
         mainContent.add(welcomeText);
 
@@ -367,25 +372,6 @@ private void createDrawer() {
 
         setContent(mainContent);
     }
-
-    // private void createEquitySection(VerticalLayout mainContent) {
-    //     VerticalLayout equitySection = new VerticalLayout();
-    //     equitySection.addClassName("equity-section");
-
-    //     H3 equityTitle = new H3("Equity");
-    //     equityTitle.addClassName("section-title");
-
-    //     Div equityValue = new Div();
-    //     equityValue.setText("₹ --");
-    //     equityValue.addClassName("equity-value");
-
-    //     Div marginInfo = new Div();
-    //     marginInfo.setText("Margin Available");
-    //     marginInfo.addClassName("margin-info");
-
-    //     equitySection.add(equityTitle, equityValue, marginInfo);
-    //     mainContent.add(equitySection);
-    // }
 
     private void createEquitySection(VerticalLayout mainContent) {
         VerticalLayout equitySection = new VerticalLayout();
@@ -458,14 +444,5 @@ private void createDrawer() {
         });
         return tab;
     }
-    // private List<Stock> createDummyStocks() {
-    //     List<Stock> stocks = new ArrayList<>();
-    //     stocks.add(new Stock("AAPL", 150.25, 1.5, 1.0));
-    //     stocks.add(new Stock("GOOGL", 2750.10, -0.5, -0.02));
-    //     stocks.add(new Stock("MSFT", 305.75, 0.8, 0.26));
-    //     stocks.add(new Stock("AMZN", 3300.50, -1.2, -0.04));
-    //     stocks.add(new Stock("TSLA", 750.80, 2.3, 0.31));
-    //     return stocks;
-    // }
 }
 

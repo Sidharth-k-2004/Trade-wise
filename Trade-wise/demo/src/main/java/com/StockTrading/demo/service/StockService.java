@@ -299,6 +299,59 @@ public class StockService {
             throw new IllegalArgumentException("User not found with ID: " + userId);
         }
     }
+
+    public List<HashMap<String, Object>> getHoldings(int userId) {
+        Optional<User> userOptional = userRepo.findById(userId);
+        List<HashMap<String, Object>> resuList = new ArrayList<>();
+        
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            List<UserStock> ownedStocks = user.getOwnedStocks();
+            
+            for (UserStock stock : ownedStocks) {
+                String symbol = stock.getSymbol();  // Fixed missing semicolon
+                StockData stockData = fetchStockData(symbol);
+                
+                if (stockData != null) {
+                    try {
+                        double currentPrice = Double.parseDouble(stockData.getPrice());
+                        int quantity = stock.getQuantityOwned();
+                        double boughtPrice = stock.getPurchasePrice();
+                        LocalDate purchaseDate = stock.getPurchaseDate();
+                        
+                        double currentTotalPrice = currentPrice * quantity;
+                        double boughtTotalPrice = boughtPrice * quantity;
+                        double profitLoss = currentTotalPrice - boughtTotalPrice;  // Corrected formula
+                        
+                        // Creating HashMap for each stock
+                        HashMap<String, Object> stockMap = new HashMap<>();
+                        stockMap.put("stock", symbol);
+                        stockMap.put("quantity", quantity);
+                        stockMap.put("buyPrice", boughtPrice);
+                        stockMap.put("currentPrice", currentPrice);
+                        stockMap.put("investment", boughtTotalPrice);
+                        stockMap.put("currentValue", currentTotalPrice);
+                        stockMap.put("unrealizedPnL", profitLoss);
+                        stockMap.put("purchaseDate", purchaseDate);
+    
+                        // Adding stock details to the list
+                        resuList.add(stockMap);
+    
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid price format for stock: " + stock.getSymbol());
+                    }
+                }
+            }
+        }
+        
+        return resuList;  // Ensure the method returns the correct list
+    }
+
+    public StockData searchStock(String symbol){
+        return fetchStockData(symbol);
+    }
+    
+
     
 }
 

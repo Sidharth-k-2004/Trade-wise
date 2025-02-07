@@ -179,7 +179,10 @@ public class LoginView extends VerticalLayout {
                     if (responseBody != null && responseBody.containsKey("userId") && responseBody.get("status").equals("success")) {
                         // Store userId in VaadinSession
                         VaadinSession.getCurrent().setAttribute("userId", responseBody.get("userId"));
+                        String userName = email.split("@")[0]; 
+                        VaadinSession.getCurrent().setAttribute("userName", userName);
 
+                        
                         showNotification("Login successful!", "success-notification");
                         loginButton.getUI().ifPresent(ui -> ui.navigate("dashboard"));
                     } else {

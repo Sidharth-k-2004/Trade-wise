@@ -734,7 +734,11 @@ public List<Stock> getWishlistStocks() {
         mainContent.addClassName("main-content");
 
         // Welcome section
-        H2 welcomeText = new H2("Hi, User!");
+        String userName = (String) VaadinSession.getCurrent().getAttribute("userName");
+        if (userName == null) {
+            userName = "Guest"; // Default value if not found
+        }
+        H2 welcomeText = new H2("Hi, " + userName + " !");
         welcomeText.addClassName("welcome-text");
         mainContent.add(welcomeText);
 

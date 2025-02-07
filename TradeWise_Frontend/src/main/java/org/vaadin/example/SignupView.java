@@ -117,7 +117,7 @@ public class SignupView extends VerticalLayout {
             String url = "http://localhost:8080/user"; // Replace with your backend URL
             restTemplate.postForObject(url, userMap, String.class);
             showNotification("Signup successful!", "success-notification");
-            signupButton.getUI().ifPresent(ui -> ui.navigate("dashboard"));
+            signupButton.getUI().ifPresent(ui -> ui.navigate("login"));
         } catch (Exception ex) {
             ex.printStackTrace();
             showNotification("Signup failed. Try again.", "error-notification");

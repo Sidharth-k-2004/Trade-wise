@@ -90,6 +90,7 @@ public class User {
     }
 
     public void setAvailableFunds(double availableFunds) {
+        System.out.println(availableFunds);
         this.availableFunds = availableFunds;
     }
 

@@ -89,7 +89,9 @@ public class UserService {
         Optional<User> optionalUser = userRepo.findById(userId);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
+            // System.out.println(user.getAvailableFunds());
             double newBalance = user.getAvailableFunds() + amount;
+            System.out.println(newBalance);
             user.setAvailableFunds(newBalance);
             
             // Save the updated user back to the database
@@ -174,72 +176,95 @@ public class UserService {
             throw new IllegalArgumentException("User not found with ID: " + userId);
         }
     }
+
     // public void addStocksToOwnedStock(Integer userId, List<Map<String, Object>> stockList) {
     //     Optional<User> userOptional = userRepo.findById(userId);
     //     if (userOptional.isPresent()) {
     //         User user = userOptional.get();
-    //         Double availableFunds=user.getAvailableFunds();
-    //         // Convert Map to StockData objects and add to wishlist
+    //         Double availableFunds = user.getAvailableFunds();
+    
+    //         // Convert Map to StockData objects and add to owned stocks
     //         for (Map<String, Object> userStock : stockList) {
+    //             int quantity = ((Number) userStock.get("quantity")).intValue();
+    //             double price = ((Number) userStock.get("price")).doubleValue();
+    //             double totalCost = quantity * price;
+    
+    //             // Check if user has sufficient funds
+    //             if (totalCost > availableFunds) {
+    //                 continue; // Skip if not enough funds
+    //             }
+    
     //             UserStock stock = new UserStock();
     //             stock.setSymbol((String) userStock.get("symbol"));
-    //             if( userStock.get("quantity")).intValue()*userStock.get("price")).doubleValue()>availableFunds){
-    //                 continue;
-
-    //             }
-    //             stock.setQuantityOwned(((Number) userStock.get("quantity")).intValue());  // Fix casting
-    //             // Fix purchase price type casting
-    //             stock.setPurchasePrice(((Number) userStock.get("price")).doubleValue()); 
-                
-    //             stock.setPurchaseDate(LocalDate.now()); 
+    //             stock.setQuantityOwned(quantity);
+    //             stock.setPurchasePrice(price);
+    //             stock.setPurchaseDate(LocalDate.now());
+    
+    //             // Deduct funds
+    //             availableFunds -= totalCost;
+    
     //             user.addStock(stock);
     //         }
     
-    //         // Save updated user with wishlist
+    //         // Update user's available funds
+    //         user.setAvailableFunds(availableFunds);
+            
+    //         // Save updated user with owned stocks
     //         userRepo.save(user);
     //     } else {
     //         throw new IllegalArgumentException("User not found with ID: " + userId);
     //     }
     // }
 
-    public void addStocksToOwnedStock(Integer userId, List<Map<String, Object>> stockList) {
+    public String addStocksToOwnedStock(Integer userId, List<Map<String, Object>> stockList) {
         Optional<User> userOptional = userRepo.findById(userId);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            Double availableFunds = user.getAvailableFunds();
+        
+        if (userOptional.isEmpty()) {
+            return "Error: User not found with ID: " + userId;
+        }
     
-            // Convert Map to StockData objects and add to owned stocks
-            for (Map<String, Object> userStock : stockList) {
-                int quantity = ((Number) userStock.get("quantity")).intValue();
-                double price = ((Number) userStock.get("price")).doubleValue();
-                double totalCost = quantity * price;
+        User user = userOptional.get();
+        Double availableFunds = user.getAvailableFunds();
+        boolean allStocksAdded = true; // Flag to track if all stocks are added
     
-                // Check if user has sufficient funds
-                if (totalCost > availableFunds) {
-                    continue; // Skip if not enough funds
-                }
+        // Convert Map to StockData objects and add to owned stocks
+        for (Map<String, Object> userStock : stockList) {
+            int quantity = ((Number) userStock.get("quantity")).intValue();
+            double price = ((Number) userStock.get("price")).doubleValue();
+            double totalCost = quantity * price;
     
-                UserStock stock = new UserStock();
-                stock.setSymbol((String) userStock.get("symbol"));
-                stock.setQuantityOwned(quantity);
-                stock.setPurchasePrice(price);
-                stock.setPurchaseDate(LocalDate.now());
-    
-                // Deduct funds
-                availableFunds -= totalCost;
-    
-                user.addStock(stock);
+            // Check if user has sufficient funds
+            if (totalCost > availableFunds) {
+                allStocksAdded = false; // Mark that some stocks could not be added
+                continue; // Skip this stock
             }
     
-            // Update user's available funds
-            user.setAvailableFunds(availableFunds);
-            
-            // Save updated user with owned stocks
-            userRepo.save(user);
-        } else {
-            throw new IllegalArgumentException("User not found with ID: " + userId);
+            UserStock stock = new UserStock();
+            stock.setSymbol((String) userStock.get("symbol"));
+            stock.setQuantityOwned(quantity);
+            stock.setPurchasePrice(price);
+            stock.setPurchaseDate(LocalDate.now());
+    
+            // Deduct funds
+            availableFunds -= totalCost;
+    
+            user.addStock(stock);
         }
+    
+        // If all stocks were skipped, return an error message
+        if (!allStocksAdded) {
+            return "Insufficient funds! Some or all stocks could not be added. Please add funds to continue.";
+        }
+    
+        // Update user's available funds
+        user.setAvailableFunds(availableFunds);
+    
+        // Save updated user with owned stocks
+        userRepo.save(user);
+    
+        return "Stocks added successfully!";
     }
+    
 
 
     

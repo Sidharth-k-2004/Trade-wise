@@ -220,23 +220,38 @@ public ResponseEntity<String> withDrawFunds(@RequestBody Map<String, Object> req
             return ownedStocks;
         
     }
+    // @PostMapping("/addToOwnedStock")
+    // public ResponseEntity<String> addToOwnedStock(@RequestBody Map<String, Object> request) {
+    //     try {
+    //         Integer userId = (Integer) request.get("userId");
+
+    //         List<Map<String, Object>> stockList = (List<Map<String, Object>>) request.get("stocks");
+    //         System.out.println(stockList.get(0).toString());
+    //         userService.addStocksToOwnedStock(userId, stockList);
+
+    //         return ResponseEntity.ok("owned updated successfully!");
+    //     } catch (Exception e) {
+    //         return ResponseEntity.badRequest().body("Error adding to ownedStock: " + e.getMessage());
+    //     }
+    // }
+
     @PostMapping("/addToOwnedStock")
-    public ResponseEntity<String> addToOwnedStock(@RequestBody Map<String, Object> request) {
-        try {
-            // Extract userId
-            Integer userId = (Integer) request.get("userId");
+public ResponseEntity<String> addToOwnedStock(@RequestBody Map<String, Object> request) {
+    try {
+        Integer userId = (Integer) request.get("userId");
+        List<Map<String, Object>> stockList = (List<Map<String, Object>>) request.get("stocks");
 
-            // Extract wishlist stocks
-            List<Map<String, Object>> stockList = (List<Map<String, Object>>) request.get("stocks");
-            System.out.println(stockList.get(0).toString());
-            // Add stocks to wishlist for the user
-            userService.addStocksToOwnedStock(userId, stockList);
+        String result = userService.addStocksToOwnedStock(userId, stockList);
 
-            return ResponseEntity.ok("owned updated successfully!");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error adding to ownedStock: " + e.getMessage());
+        if (result.contains("Insufficient funds")) {
+            return ResponseEntity.badRequest().body(result);
         }
+        return ResponseEntity.ok(result);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
     }
+}
+
 
 
 @GetMapping("/equity")

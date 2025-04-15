@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.json.JSONObject;
+import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -208,21 +209,7 @@ public class FundsView extends AppLayout {
 
         return grid;
     }
-//     public List<Stock> getWishlistStocks() {
-//     Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
 
-//     if (userId == null || userId == -1) {
-//         Notification.show("User is not logged in.");
-//         return Collections.emptyList();  // Return an empty list instead of null
-//     }
-
-//     String url = "http://localhost:8080/wishlist/" + userId;
-
-    
-//         List<StockData> stocks = restTemplate.exchange(url, HttpMethod.GET, null, new ParameterizedTypeReference<List<Stock>>() {}
-//         return stocks;
-
-// }
 public List<Stock> getWishlistStocks() {
     Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
 
@@ -443,7 +430,8 @@ public List<Stock> getWishlistStocks() {
         // Amount field
         TextField amountField = new TextField("Enter Amount for fund:");
         amountField.setWidthFull();
-        amountField.setValue("200");
+        Integer userId = (Integer) VaadinSession.getCurrent().getAttribute("userId");
+        amountField.setValue("");
         amountField.setPlaceholder("Margin Needed : ₹ 200");
         amountField.getStyle()
                 .set("background-color", "white")
@@ -612,12 +600,14 @@ public List<Stock> getWishlistStocks() {
     public void sendAddFundRequest(double amount) {
         try {
             int userId = getCurrentUserId(); // Implement this method to get the current user's ID
-            String url = "http://localhost:8080/addFunds"; // Adjust this URL to match your backend
+            // String url = "http://localhost:8080/addFunds";
+            String url = "http://localhost:8080/transaction";
     
             // Create JSON payload
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("userId", userId);
             jsonObject.put("amount", amount);
+            jsonObject.put("type", "add");
     
             // Create HttpClient instance
             HttpClient httpClient = HttpClient.newHttpClient();
@@ -645,11 +635,13 @@ public List<Stock> getWishlistStocks() {
     private void sendWithdrawRequest(double amount) {
         try {
             int userId = getCurrentUserId();
-            String url = "http://localhost:8080/withdrawFunds";
+            // String url = "http://localhost:8080/withdrawFunds";
+            String url = "http://localhost:8080/transaction";
     
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("userId", userId);
             jsonObject.put("amount", amount);
+            jsonObject.put("type", "withdraw");
     
             HttpClient httpClient = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
